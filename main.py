@@ -14,7 +14,7 @@ OS = __init__.find_os()
 max_screen_size_x, max_screen_size_y = __init__.find_resolution(OS)
 screen_size_x, screen_size_y = __init__.set_resolution(max_screen_size_x,
                                                        max_screen_size_y)
-#Do this just in case the exit fullscreen
+#Do this just in case they exit fullscreen
 __init__.set_position(max_screen_size_x, screen_size_x)
 
 pygame.init()

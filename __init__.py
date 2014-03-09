@@ -1,5 +1,6 @@
 import platform
 import os
+import sys
 
 def find_os():
     #Returns the OS name
@@ -10,7 +11,7 @@ def find_resolution(OS):
     #Put in default values if we're on unsupported OS
     max_screen_size_x = 800
     max_screen_size_y = 600
-    
+
     print('Looking for max screen resolution and an operating system...')
 
     #Find the system's max resolution

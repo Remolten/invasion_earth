@@ -19,6 +19,14 @@ lib
 lib64
 __pycache__
 
+#Assets
+*.png
+ui
+graphics
+
+#Reference
+pygame_docs
+
 # Installer logs
 pip-log.txt
 

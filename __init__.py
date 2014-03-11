@@ -45,19 +45,19 @@ def find_resolution(OS):
             print("This isn't a supported Mac OSX version.")
             
     elif OS == 'Linux' or 'Unix':
-    	try:
-    		screen = os.popen('xrandr -q -d :0')
-    		screen = screen.readlines()[0]
-    		max_screen_size_x = int(screen.split()[7])
-    		max_screen_size_y = int(screen.split()[9][:-1])
-    		print('Your max screen resolution is %d, %d' % (max_screen_size_x, 
-    														max_screen_size_y))
-    		print("You're running a supported version of Linux/Unix.")
-    	except:
-    		print("This isn't a supported Linux/Unix version.")
+        try:
+            screen = os.popen('xrandr -q -d :0')
+            screen = screen.readlines()[0]
+            max_screen_size_x = int(screen.split()[7])
+            max_screen_size_y = int(screen.split()[9][:-1])
+            print('Your max screen resolution is %d, %d' % (max_screen_size_x, 
+                                                            max_screen_size_y))
+            print("You're running a supported version of Linux/Unix.")
+        except:
+            print("This isn't a supported Linux/Unix version.")
 
     else:
-    	#This hack should make the game work on all other OS's
+        #This hack should make the game work on all other OS's
         print("Couldn't find %d in the supported OS's.  The game will still attempt to "
               "run." % OS)
         pygame.init()
@@ -69,25 +69,28 @@ def find_resolution(OS):
     return max_screen_size_x, max_screen_size_y
 
 def set_resolution(max_screen_size_x, max_screen_size_y):
-	#Make sure we don't go over the maximum resolution
-	if max_screen_size_x > 2000:
-		print("You'll have to live with the resolution; the game can't "
+    #Set screen_size placeholder variables
+    screen_size_x = 800
+    screen_size_y = 600
+    #Make sure we don't go over the maximum resolution
+    if max_screen_size_x > 2000:
+        print("You'll have to live with the resolution; the game can't "
               "scale any larger to fit your screen.")
-    	screen_size_x = 2000
+        screen_size_x = 2000
  
-	if max_screen_size_y > 1500:
-		print("You'll have to live with the resolution; the game can't "
+    if max_screen_size_y > 1500:
+        print("You'll have to live with the resolution; the game can't "
               "scale any larger to fit your screen.")
         screen_size_y = 1500 
               
     #We figure out the closest supported display type to the maximum possible one
-	if max_screen_size_x < 800 or max_screen_size_y < 600:
-		sys.exit('Screen is too small to display the game properly.  Please get '
+    if max_screen_size_x < 800 or max_screen_size_y < 600:
+        sys.exit('Screen is too small to display the game properly.  Please get '
                  'a better resolution screen :D')
                        
-	if screen_size_x != 2000 and screen_size_y != 1500:
+    if screen_size_x != 2000 and screen_size_y != 1500:
         #Lambda is a hack to create a temporary function to work with min()
-		screen_size_x = min([800, 1000, 1200, 1400, 1600, 1800, 2000],
+        screen_size_x = min([800, 1000, 1200, 1400, 1600, 1800, 2000],
                             key = lambda x:abs(x - max_screen_size_x))
         #Make sure the closest one isn't higher than the max plus some padding
         while screen_size_x >= max_screen_size_x:
@@ -98,7 +101,7 @@ def set_resolution(max_screen_size_x, max_screen_size_y):
         while screen_size_y >= max_screen_size_y:
             screen_size_y -= 200
             
-	return screen_size_x, screen_size_y
+    return screen_size_x, screen_size_y
 
 def set_position(max_screen_size_x, screen_size_x):
     #Works on Windows

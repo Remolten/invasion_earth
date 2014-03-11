@@ -1,9 +1,6 @@
 import pygame
 from pygame.locals import *
 
-#Use this module to determine slant for flash
-from fractions import Fraction
-
 class OrderedUpdatesModded(pygame.sprite.OrderedUpdates):
     def update(self, *args):
         #This makes the group's sprite's updating internalized

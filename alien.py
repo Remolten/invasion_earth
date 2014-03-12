@@ -15,7 +15,7 @@ class Alien(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.types = 'Blue', 'Green', 'Red', 'Yellow'
         self.type = random.choice(self.types)
-        self.image = pygame.image.load('ufo' + self.type + '.png')
+        self.image = pygame.image.load('ufo' + self.type + '.png').convert()
         self.rect = pygame.Rect(random.randint(0, screen_size_x - 99), 0, 91, 91)
         self.screen_size_y = screen_size_y
         if self.type == 'Red':

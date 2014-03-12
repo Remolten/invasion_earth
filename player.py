@@ -22,8 +22,8 @@ class Bolt(pygame.sprite.DirtySprite):
 class Player(pygame.sprite.DirtySprite):
     def __init__(self, window_rect):
         pygame.sprite.DirtySprite.__init__(self)
-        self.image = pygame.image.load('player.png').convert()
-        self.bolt_image = pygame.image.load('laser.png').convert()
+        self.image = pygame.image.load('player.png').convert_alpha()
+        self.bolt_image = pygame.image.load('laser.png').convert_alpha()
         self.rect = pygame.Rect(window_rect.w / 2 - 45, window_rect.h - 75, 99, 75)
         self.window_rect = window_rect
         self.move_up = False

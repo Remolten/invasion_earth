@@ -23,7 +23,7 @@ def find_resolution(OS):
             max_screen_size_x = user32.GetSystemMetrics(0)
             max_screen_size_y = user32.GetSystemMetrics(1)
             print('Your max screen resolution is %d, %d.' % (max_screen_size_x,
-                                                        max_screen_size_y))
+                                                             max_screen_size_y))
             print("You're running a supported version of Windows.")
         except:
             print("This isn't a supported Windows version.")

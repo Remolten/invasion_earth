@@ -18,19 +18,13 @@ screen_size_x, screen_size_y = __init__.set_resolution(max_screen_size_x,
 __init__.set_position(max_screen_size_x, screen_size_x)
 
 pygame.init()
-#Untested potential hack for Linux
-'''if fullscreen:
-    window = pygame.display.set_mode((screen_size_x, screen_size_y), FULLSCREEN)
-    screen_size_x, screen_size_y = pygame.display.get_info()
-    pygame.display.set_fullscreen = False
-    pygame.display.set_mode((screen_size_x, screen_size_y))'''
-#Will always run for now
 window = pygame.display.set_mode((screen_size_x, screen_size_y), FULLSCREEN)
 pygame.display.set_caption('Invasion Earth')
 #pygame.display.set_icon('my_logo_icon.png')
 clock = pygame.time.Clock()
 background = pygame.image.load('background.png').convert()
-player = Player(screen_size_x, screen_size_y)
+window_rect = pygame.Rect(0, 0, screen_size_x, screen_size_y)
+player = Player(window_rect)
 player_group = pygame.sprite.GroupSingle()
 player_group.add(player)
 aliens = OrderedUpdatesModded()
@@ -88,7 +82,7 @@ def main():
 
             if event.type == MOUSEBUTTONDOWN:
                 #Left = 1, Scroll Wheel = 2 Right = 3 Close = 6 Far = 7
-                #Only trigger on left mouse clicks
+                #Only triggers on left mouse clicks
                 if event.button == 1:
                     player.shooting = True
                 
@@ -111,7 +105,7 @@ def main():
         player.new_bolts()
         player.bolts_group.update()
         player.bolts_group.draw(window)
-        player.update(screen_size_x, screen_size_y)
+        player.update()
         player_group.draw(window)
         pygame.display.update()
         clock.tick(60)

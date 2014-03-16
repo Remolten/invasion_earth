@@ -1,6 +1,10 @@
 import pygame
 from pygame.locals import *
 
+#Use multiple cores etc.
+#Distribute throughout individual functions
+#import pp
+
 import sys
 import random
 
@@ -8,6 +12,7 @@ import __init__
 
 from player import *
 from alien import *
+from powerup import *
 
 #Use this to find an optimum resolution
 OS = __init__.find_os()
@@ -20,7 +25,8 @@ __init__.set_position(max_screen_size_x, screen_size_x)
 pygame.init()
 window = pygame.display.set_mode((screen_size_x, screen_size_y), FULLSCREEN)
 pygame.display.set_caption('Invasion Earth')
-#pygame.display.set_icon('my_logo_icon.png')
+health_image = pygame.image.load('playerLife1_blue.png').convert_alpha()
+pygame.display.set_icon(health_image)
 clock = pygame.time.Clock()
 background = pygame.image.load('background.png').convert()
 window_rect = pygame.Rect(0, 0, screen_size_x, screen_size_y)
@@ -28,10 +34,12 @@ player = Player(window_rect)
 player_group = pygame.sprite.GroupSingle()
 player_group.add(player)
 aliens = OrderedUpdatesModded()
+powerups = OrderedUpdatesModded()
 fullscreen = True
+active_powerup = None
 
 def main():
-    global fullscreen
+    global fullscreen, active_powerup
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -55,7 +63,7 @@ def main():
                     player.move_left = False
                 if event.key == K_SPACE:
                     player.shooting = True
-                if event.key == K_LSHIFT:
+                if event.key == K_LSHIFT or event.key == K_RSHIFT:
                     player.flash = True
                                 
             if event.type == KEYUP:
@@ -77,7 +85,7 @@ def main():
                     player.move_right = False
                 if event.key == K_SPACE:
                     player.shooting = False
-                if event.key == K_LSHIFT:
+                if event.key == K_LSHIFT or event.key == K_RSHIFT:
                     player.flash = False
 
             if event.type == MOUSEBUTTONDOWN:
@@ -95,13 +103,57 @@ def main():
             for x in range(screen_size_x / 256 + 1):
                 window.blit(background, (x * 256, y * 256))
                 
+        #Print amount of player lives
+        #TODO use lives with collisions etc.
+        #When finished git commit for it and push
+        for i in range(player.health):
+            window.blit(health_image, (10 + i * 43, 10))
+            
+        #Maybe move this code
+        #TODO Change this to spritecollide group function
+        for alien in aliens.sprites():
+            if player.rect.colliderect(alien):
+                alien.kill()
+                if player.active_powerup != 'shield':
+                    player.damage()
+                else:
+                    player.active_powerup = None
+                
+        #Do something when player hits a powerup
+        for powerup in powerups.sprites():
+            if player.rect.colliderect(powerup):
+                player.active_powerup = powerup.type
+                powerup.kill()
+                
+        #Just a temporary test
+        if player.dead:
+            print('Game Over')
+            pygame.quit()
+            sys.exit()
+                
         if random.randint(0, 120) == 11:
-            alien = Alien(screen_size_x, screen_size_y)
+            alien = Alien(window_rect)
             aliens.add(alien)
+            
+        if player.active_powerup == 'bolt':
+            aliens.empty()
+            player.active_powerup = None
+            
+        if random.randint(0, 240) == 11 and player.active_powerup == None:
+            powerup = Powerup(window_rect)
+            powerups.add(powerup)
         
         groupcollidemodded(aliens, player.bolts_group)
-        aliens.update()
+        if player.active_powerup != 'star':
+            aliens.update()
+        else:
+            pass
+            #Not sure about this
+            #Need to add a timer
+            #player.active_powerup = None
         aliens.draw(window)
+        powerups.update()
+        powerups.draw(window)
         player.new_bolts()
         player.bolts_group.update()
         player.bolts_group.draw(window)

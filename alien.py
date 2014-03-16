@@ -11,13 +11,13 @@ def groupcollidemodded(groupa, groupb):
                 sprite.dead()
 
 class Alien(pygame.sprite.DirtySprite):
-    def __init__(self, screen_size_x, screen_size_y):
+    def __init__(self, window_rect):
         pygame.sprite.DirtySprite.__init__(self)
         self.types = 'Blue', 'Green', 'Red', 'Yellow'
         self.type = random.choice(self.types)
         self.image = pygame.image.load('ufo' + self.type + '.png').convert_alpha()
-        self.rect = pygame.Rect(random.randint(0, screen_size_x - 99), 0, 91, 91)
-        self.screen_size_y = screen_size_y
+        self.rect = pygame.Rect(random.randint(0, window_rect.w - 99), 0, 91, 91)
+        self.screen_size_y = window_rect.h
         if self.type == 'Red':
             self.speed = 6
         else:
@@ -31,7 +31,7 @@ class Alien(pygame.sprite.DirtySprite):
             self.shooter = True
         else:
             self.shooter = False
-        #self.rotation = 1
+        #self.rotation = 0
         self.dirty = 2
 
     def update(self):
@@ -41,12 +41,18 @@ class Alien(pygame.sprite.DirtySprite):
 
         if self.shooter:
             pass
-        '''if self.rotation == 1:
-            pygame.transform.rotate(self.image, 30)
+            
+        '''if self.rotation == 0:
+            self.image = pygame.transform.rotate(self.image, 30)
             self.rotation += 1
-        if self.rotation == 6:
-            pygame.transform.rotate(self.image, -30)
-            self.rotation = 0'''
+        elif self.rotation == 30:
+            self.image = pygame.transform.rotate(self.image, -30)
+        elif self.rotation == 60:
+            self.rotation = 0
+        else:
+            self.rotation += 1'''
+            
+        
 
     def dead(self):
         self.health -= 1

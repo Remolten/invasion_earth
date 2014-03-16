@@ -35,11 +35,12 @@ class Player(pygame.sprite.DirtySprite):
         self.bolts_group = OrderedUpdatesModded()
         self.counter = 0
         self.health = 3
+        self.dead = False
         self.flash = False
         self.flash_cd = False
         self.flash_counter = 0
-        self.dead = False
         self.dirty = 0
+        self.active_powerup = None
 
     def update(self):
         if self.move_up:
@@ -81,4 +82,9 @@ class Player(pygame.sprite.DirtySprite):
             if self.counter == 8:
                 self.counter = 0
                 self.overheated = False
+                
+    def damage(self):
+        self.health -= 1
+        if self.health <= 0:
+            self.dead = True
 

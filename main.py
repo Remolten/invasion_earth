@@ -40,13 +40,16 @@ fullscreen = True
 active_powerup = None
 
 #WIP
+#TODO implement this into Main_Menu class
 def main_menu():
     global fullscreen
-    #button = Button(window, (screen_size_x / 2 - 95, screen_size_y / 2 - 25), text='Start Game')
     main_menu = Menu(3, window, text=['Start Game', 'Options', 'Quit'])
     while True:
         for event in pygame.event.get():
             #Bug here where events needs to be inside the for loop???
+            #Otherwise it glitches out, no idea why
+            #This means it will only take one event per loop through
+            #Could cause a bug if user clicks at same time as pressing key, unlikely tho
             events = []
             events.append(event)
             
@@ -63,8 +66,14 @@ def main_menu():
                                                 FULLSCREEN)
                         fullscreen = True
                         
-        if main_menu.update(events) == 'Start Game':
+        state = main_menu.update(events)
+        if state == 'Start Game':
             break
+        elif state == 'Options':
+            pass
+        elif state == 'Quit':
+            pygame.quit()
+            sys.exit()
         pygame.display.update()
         clock.tick(60)
 

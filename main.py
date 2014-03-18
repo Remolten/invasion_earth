@@ -13,6 +13,7 @@ import __init__
 from player import *
 from alien import *
 from powerup import *
+from ui import *
 
 #Use this to find an optimum resolution
 OS = __init__.find_os()
@@ -37,6 +38,35 @@ aliens = OrderedUpdatesModded()
 powerups = OrderedUpdatesModded()
 fullscreen = True
 active_powerup = None
+
+#WIP
+def main_menu():
+    global fullscreen
+    #button = Button(window, (screen_size_x / 2 - 95, screen_size_y / 2 - 25), text='Start Game')
+    main_menu = Menu(3, window, text=['Start Game', 'Options', 'Quit'])
+    while True:
+        for event in pygame.event.get():
+            #Bug here where events needs to be inside the for loop???
+            events = []
+            events.append(event)
+            
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYUP:
+                if event.key == K_ESCAPE:
+                    if fullscreen:
+                        pygame.display.set_mode((screen_size_x, screen_size_y))
+                        fullscreen = False
+                    else:
+                        pygame.display.set_mode((screen_size_x, screen_size_y),
+                                                FULLSCREEN)
+                        fullscreen = True
+                        
+        if main_menu.update(events) == 'Start Game':
+            break
+        pygame.display.update()
+        clock.tick(60)
 
 def main():
     global fullscreen, active_powerup
@@ -151,6 +181,7 @@ def main():
             #Not sure about this
             #Need to add a timer
             #player.active_powerup = None
+            
         aliens.draw(window)
         powerups.update()
         powerups.draw(window)
@@ -163,4 +194,5 @@ def main():
         clock.tick(60)
 
 if __name__ == '__main__':
+    main_menu()
     main()

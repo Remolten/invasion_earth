@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 import pygame_sdl2
 pygame_sdl2.import_as_pygame()
 
+=======
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
 import pygame
 from pygame.locals import *
 
@@ -55,7 +58,11 @@ def main_menu():
             #Could cause a bug if user clicks at same time as pressing key, unlikely tho
             events = []
             events.append(event)
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
@@ -68,7 +75,11 @@ def main_menu():
                         pygame.display.set_mode((screen_size_x, screen_size_y),
                                                 FULLSCREEN)
                         fullscreen = True
+<<<<<<< HEAD
 
+=======
+                        
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         state = main_menu.update(events)
         if state == 'Start Game':
             break
@@ -87,7 +98,11 @@ def main():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     pass
@@ -107,7 +122,11 @@ def main():
                     player.shooting = True
                 if event.key == K_LSHIFT or event.key == K_RSHIFT:
                     player.flash = True
+<<<<<<< HEAD
 
+=======
+                                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
             if event.type == KEYUP:
                 if event.key == K_ESCAPE:
                     if fullscreen:
@@ -135,7 +154,11 @@ def main():
                 #Only triggers on left mouse clicks
                 if event.button == 1:
                     player.shooting = True
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
             if event.type == MOUSEBUTTONUP:
                 if event.button == 1:
                     player.shooting = False
@@ -144,13 +167,21 @@ def main():
         for y in range(screen_size_y / 256 + 1):
             for x in range(screen_size_x / 256 + 1):
                 window.blit(background, (x * 256, y * 256))
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         #Print amount of player lives
         #TODO use lives with collisions etc.
         #When finished git commit for it and push
         for i in range(player.health):
             window.blit(health_image, (10 + i * 43, 10))
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         #Maybe move this code
         #TODO Change this to spritecollide group function
         for alien in aliens.sprites():
@@ -160,18 +191,27 @@ def main():
                     player.damage()
                 else:
                     player.active_powerup = None
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         #Do something when player hits a powerup
         for powerup in powerups.sprites():
             if player.rect.colliderect(powerup):
                 player.active_powerup = powerup.type
                 powerup.kill()
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         #Just a temporary test
         if player.dead:
             print('Game Over')
             pygame.quit()
             sys.exit()
+<<<<<<< HEAD
 
         if random.randint(0, 120) == 11:
             alien = Alien(window_rect)
@@ -185,6 +225,21 @@ def main():
             powerup = Powerup(window_rect)
             powerups.add(powerup)
 
+=======
+                
+        if random.randint(0, 120) == 11:
+            alien = Alien(window_rect)
+            aliens.add(alien)
+            
+        if player.active_powerup == 'bolt':
+            aliens.empty()
+            player.active_powerup = None
+            
+        if random.randint(0, 240) == 11 and player.active_powerup == None:
+            powerup = Powerup(window_rect)
+            powerups.add(powerup)
+        
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         groupcollidemodded(aliens, player.bolts_group)
         if player.active_powerup != 'star':
             aliens.update()
@@ -193,7 +248,11 @@ def main():
             #Not sure about this
             #Need to add a timer
             #player.active_powerup = None
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 19431841c6f9e059eba90761a646abd1a9d97434
         aliens.draw(window)
         powerups.update()
         powerups.draw(window)

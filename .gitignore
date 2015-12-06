@@ -21,9 +21,7 @@ __pycache__
 
 #Assets
 *.png
-pygame_docs
-graphics
-ui
+assets
 *.ttf
 
 # Installer logs
@@ -41,3 +39,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.DS_Store

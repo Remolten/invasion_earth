@@ -1,5 +1,6 @@
 class Entity():
-    def __init__(self, id, **kwargs):
+    def __init__(self, id, *args):
         self.id = id
-        for arg in kwargs:
-            self.cs.arg = kwargs[arg]
+        self.cs = {}
+        for arg in args:
+            self.cs[arg.id] = arg

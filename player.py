@@ -18,7 +18,7 @@ class Bolt(pygame.sprite.DirtySprite):
         self.rect.y -= 12
         if self.rect.y <= 0:
             self.kill()
-            
+
 class Player(pygame.sprite.DirtySprite):
     def __init__(self, window_rect):
         pygame.sprite.DirtySprite.__init__(self)
@@ -65,7 +65,7 @@ class Player(pygame.sprite.DirtySprite):
             if self.flash_counter == 120:
                 self.flash_cd = False
                 self.flash_counter = 0
-                
+
         #Keep the rect inside the window
         self.rect.clamp_ip(self.window_rect)
 
@@ -82,9 +82,8 @@ class Player(pygame.sprite.DirtySprite):
             if self.counter == 8:
                 self.counter = 0
                 self.overheated = False
-                
+
     def damage(self):
         self.health -= 1
         if self.health <= 0:
             self.dead = True
-

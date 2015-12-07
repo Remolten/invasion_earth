@@ -1,11 +1,12 @@
-from pygame_sdl2.sprite import DirtySprite
+from pygame.sprite import DirtySprite
 
 class DirtySprite(DirtySprite):
-    def __init__(self, **kwargs):
+    def __init__(self, img, rect):
+        super(DirtySprite, self).__init__()
         self.id = 'DirtySprite'
-        self.img = img
+        self.image = img
         self.rect = rect
-        self.dirty = 0
+        self.dirty = 1
 
 class Speed():
     def __init__(self, spd):

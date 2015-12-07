@@ -4,7 +4,7 @@ pygame_sdl2.import_as_pygame()
 import pygame
 from pygame.locals import *
 
-import sys, random
+import sys, os, random
 
 from entity import *
 from components import *
@@ -15,20 +15,21 @@ class Game:
         self.ssx = 1000
         self.ssy = 800
         pygame.init()
-        self.screen = pygame.display.set_mode((self.ssx, self.ssy), FULLSCREEN)
+        self.screen = pygame.display.set_mode((self.ssx, self.ssy))
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
 
         self.eventSystem = EventSystem()
+        self.movementSystem = MovementSystem()
         self.drawSystem = DrawSystem()
 
     def start(self):
         self.entities = {}
-        self.plrimg = None
-        self.plr = Entity('plr', DirtySprite({'img': self.plrimg, 'rect': self.plrimg.get_rect()}, Speed(6), PlayerControl())
+        self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect()), Speed(6), PlayerControl())
         self.entities[self.plr.id] = self.plr
-        #self.plrgrp = pygame.sprite.GroupSingle()
-        #self.plrgrp.add(self.plr)
+        self.plrgrp = pygame.sprite.GroupSingle()
+        self.plrgrp.add(self.plr.cs['DirtySprite'])
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
 
@@ -41,7 +42,12 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                eventSystem.update(self.entities, event)
+                if event.type == KEYUP:
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+
+                self.eventSystem.update(self.entities, event)
 
                 '''if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
@@ -141,9 +147,13 @@ class Game:
             self.plr.bolts_group.draw(window)'''
             #self.plr.update()
             #self.plrgrp.draw(window)
-            #drawSystem.draw(screen, groups)
-            pygame.display.update(drawSystem.rlst)
+            #TODO create the groups
+            self.movementSystem.update(self.entities)
+            self.drawSystem.draw(self.screen, self.plrgrp)
+            pygame.display.update(self.drawSystem.rlst)
+            pygame.display.flip()
             self.clock.tick(60)
 
 if __name__ == '__main__':
-    Game().run()
+    game = Game()
+    game.run()

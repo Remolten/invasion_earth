@@ -5,6 +5,14 @@ class Entity():
     def __init__(self, id, *components):
         self.id = id
         self.cs = []
-        for c in components:
-            self.__dict__[c.id] = c
-            self.cs.append(c.id)
+        self.add(*components)
+
+    def add(self, *components):
+        for component in components:
+            self.__dict__[component.id] = component
+            self.cs.append(component.id)
+
+    def rem(self, *components):
+        for component in components:
+            del self.__dict__[component.id]
+            self.cs.remove(component.id)

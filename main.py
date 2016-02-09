@@ -19,17 +19,18 @@ class Game:
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
 
+        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'purple.png')).convert()
+        self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
+
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem()
         self.drawSystem = DrawSystem()
 
     def start(self):
-        self.entities = {}
-        self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect()), Speed(6), PlayerControl())
-        self.entities[self.plr.id] = self.plr
-        self.plrgrp = pygame.sprite.GroupSingle()
-        self.plrgrp.add(self.plr.cs['DirtySprite'])
+        self.entities = []
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6), PlayerControl(), Fire())
+        self.entities.append(self.plr)
+        self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.cs['DirtySprite'])
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
 
@@ -149,9 +150,9 @@ class Game:
             #self.plrgrp.draw(window)
             #TODO create the groups
             self.movementSystem.update(self.entities)
-            self.drawSystem.draw(self.screen, self.plrgrp)
+            self.screen.fill((0, 0, 0))
+            self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
             pygame.display.update(self.drawSystem.rlst)
-            pygame.display.flip()
             self.clock.tick(60)
 
 if __name__ == '__main__':

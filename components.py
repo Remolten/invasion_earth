@@ -6,7 +6,7 @@ class DirtySprite(DirtySprite):
         self.id = 'DirtySprite'
         self.image = img
         self.rect = rect
-        self.dirty = 1
+        self.dirty = 1 #Hack to make it show initially
 
 class Speed():
     def __init__(self, spd):
@@ -29,8 +29,10 @@ class Health():
 class Fire():
     def __init__(self):
         self.id = 'Fire'
-        self.frng = False
-        self.ovrhtd = False
+        self.fire = False
+        self.over = False
+        self.overt = 0
+        self.overtm = 20 #To be tweaked
 
 class Flash():
     def __init__(self):

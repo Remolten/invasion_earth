@@ -1,6 +1,9 @@
+# Components must have unique string ids
+# Components are accessed directly eg entity.component
+
 class Entity():
-    def __init__(self, id, *args):
+    def __init__(self, id, *components):
         self.id = id
-        self.cs = {}
-        for arg in args:
-            self.cs[arg.id] = arg
+        for c in components:
+            cid = c.id
+            self.cid = c

@@ -150,7 +150,6 @@ class Game:
             #self.plrgrp.draw(window)
             #TODO create the groups
             self.movementSystem.update(self.entities)
-            self.screen.fill((0, 0, 0))
             self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
             pygame.display.update(self.drawSystem.rlst)
             self.clock.tick(60)

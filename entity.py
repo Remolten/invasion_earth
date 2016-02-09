@@ -16,3 +16,9 @@ class Entity():
         for component in components:
             del self.__dict__[component.id]
             self.cs.remove(component.id)
+
+    def has(self, *component_strs):
+        for component_str in component_strs:
+            if not hasattr(self, component_str):
+                return False
+        return True

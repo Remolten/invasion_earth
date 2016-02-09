@@ -1,13 +1,20 @@
 import pygame
 from pygame.locals import *
 
+# Utility function which when used via yield will pause for x frames
+def wait(frames):
+    ct = 0
+    while ct <= frames:
+        ct += 1
+        yield frames - ct
+
 class EventSystem():
     def __init__(self):
         pass
 
     def update(self, entities, event):
         for entity in entities:
-            if entity.PlayerControl != None:
+            if entity.has('PlayerControl', 'Fire'):
                 if event.type == KEYDOWN:
                     if event.key == K_UP or event.key == ord('w'):
                         entity.PlayerControl.up = True
@@ -43,8 +50,8 @@ class MovementSystem():
 
     def update(self, entities):
         for entity in entities:
-            if entity.DirtySprite != None and entity.Speed != None:
-                if entity.PlayerControl != None:
+            if entity.has('DirtySprite', 'Speed'):
+                if entity.has('PlayerControl'):
                     #FIXME Dirty is glitched up
                     if entity.PlayerControl.up:
                         entity.DirtySprite.rect.y -= entity.Speed.spd
@@ -67,24 +74,26 @@ class FireSystem():
 
     def update(self, entities):
         for entity in entities:
-            if entity.Fire.fire and not entity.Fire.over:
-                pass #Shoot lasers
-            elif entity.Fire.over:
-                entity.Fire.overt += 1
+            if entity.has('Fire'):
+                if entity.Fire.fire and not entity.Fire.over:
+                    pass #Shoot lasers
+                elif entity.Fire.over:
+                    entity.Fire.overt += 1
 
-            if entity.Fire.overt == entity.Fire.overtm:
-                entity.Fire.overt = 0
-                entity.Fire.over = False
+                if entity.Fire.overt == entity.Fire.overtm:
+                    entity.Fire.overt = 0
+                    entity.Fire.over = False
 
 class DrawSystem():
     def __init__(self):
         self.rlst = []
 
-    def draw(self, screen, bg, *args):
+    def draw(self, screen, bg, *spritegroups):
+        screen.fill((0, 0, 0))
         self.rlst = []
-        for group in args:
+        for spritegroup in spritegroups:
             #group.clear(screen, bg) Needs to be the size of the screen
-            rcts = group.draw(screen)
+            rcts = spritegroup.draw(screen)
             #We are dealing with a LayeredDirty group
             #FIXME LayeredDirty groups are broken???
             if rcts != None:
@@ -92,8 +101,9 @@ class DrawSystem():
                     self.rlst.append(rct)
             #We are dealing with a GroupSingle
             else:
-                self.rlst.append(group.sprite.rect)
+                self.rlst.append(spritegroup.sprite.rect)
 
+# Hopefully this will eventually presort entities into relevant groups
 class EntityGroupSystem():
     def __init__(self):
         pass

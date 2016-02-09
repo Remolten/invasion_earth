@@ -30,7 +30,7 @@ class Game:
         self.entities = []
         self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6), PlayerControl(), Fire())
         self.entities.append(self.plr)
-        self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.cs['DirtySprite'])
+        self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
 

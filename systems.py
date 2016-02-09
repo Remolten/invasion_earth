@@ -7,35 +7,35 @@ class EventSystem():
 
     def update(self, entities, event):
         for entity in entities:
-            if entity.cs['PlayerControl'] != None:
+            if entity.PlayerControl != None:
                 if event.type == KEYDOWN:
                     if event.key == K_UP or event.key == ord('w'):
-                        entity.cs['PlayerControl'].up = True
-                        entity.cs['PlayerControl'].dwn = False
+                        entity.PlayerControl.up = True
+                        entity.PlayerControl.dwn = False
                     if event.key == K_DOWN or event.key == ord('s'):
-                        entity.cs['PlayerControl'].dwn = True
-                        entity.cs['PlayerControl'].up = False
+                        entity.PlayerControl.dwn = True
+                        entity.PlayerControl.up = False
                     if event.key == K_LEFT or event.key == ord('a'):
-                        entity.cs['PlayerControl'].lft = True
-                        entity.cs['PlayerControl'].rgt = False
+                        entity.PlayerControl.lft = True
+                        entity.PlayerControl.rgt = False
                     if event.key == K_RIGHT or event.key == ord('d'):
-                        entity.cs['PlayerControl'].rgt = True
-                        entity.cs['PlayerControl'].lft = False
-                    if event.key == K_SPACE and entity.cs['Fire'] != None:
-                        entity.cs['Fire'].fire = True
-                        entity.cs['Fire'].over = True
+                        entity.PlayerControl.rgt = True
+                        entity.PlayerControl.lft = False
+                    if event.key == K_SPACE and entity.Fire != None:
+                        entity.Fire.fire = True
+                        entity.Fire.over = True
 
                 if event.type == KEYUP:
                     if event.key == K_UP or event.key == ord('w'):
-                        entity.cs['PlayerControl'].up = False
+                        entity.PlayerControl.up = False
                     if event.key == K_DOWN or event.key == ord('s'):
-                        entity.cs['PlayerControl'].dwn = False
+                        entity.PlayerControl.dwn = False
                     if event.key == K_LEFT or event.key == ord('a'):
-                        entity.cs['PlayerControl'].lft = False
+                        entity.PlayerControl.lft = False
                     if event.key == K_RIGHT or event.key == ord('d'):
-                        entity.cs['PlayerControl'].rgt = False
-                    if event.key == K_SPACE and entity.cs['Fire'] != None:
-                        entity.cs['Fire'].fire = False
+                        entity.PlayerControl.rgt = False
+                    if event.key == K_SPACE and entity.Fire != None:
+                        entity.Fire.fire = False
 
 class MovementSystem():
     def __init__(self):
@@ -43,23 +43,23 @@ class MovementSystem():
 
     def update(self, entities):
         for entity in entities:
-            if entity.cs['DirtySprite'] != None and entity.cs['Speed'] != None:
-                if entity.cs['PlayerControl'] != None:
+            if entity.DirtySprite != None and entity.Speed != None:
+                if entity.PlayerControl != None:
                     #FIXME Dirty is glitched up
-                    if entity.cs['PlayerControl'].up:
-                        entity.cs['DirtySprite'].rect.y -= entity.cs['Speed'].spd
-                        entity.cs['DirtySprite'].dirty = 1
-                    elif entity.cs['PlayerControl'].dwn:
-                        entity.cs['DirtySprite'].rect.y += entity.cs['Speed'].spd
-                        entity.cs['DirtySprite'].dirty = 1
-                    if entity.cs['PlayerControl'].lft:
-                        entity.cs['DirtySprite'].rect.x -= entity.cs['Speed'].spd
-                        entity.cs['DirtySprite'].dirty = 1
-                    elif entity.cs['PlayerControl'].rgt:
-                        entity.cs['DirtySprite'].rect.x += entity.cs['Speed'].spd
-                        entity.cs['DirtySprite'].dirty = 1
-                    elif not entity.cs['PlayerControl'].up and not entity.cs['PlayerControl'].dwn:
-                        entity.cs['DirtySprite'].dirty = 0
+                    if entity.PlayerControl.up:
+                        entity.DirtySprite.rect.y -= entity.Speed.spd
+                        entity.DirtySprite.dirty = 1
+                    elif entity.PlayerControl.dwn:
+                        entity.DirtySprite.rect.y += entity.Speed.spd
+                        entity.DirtySprite.dirty = 1
+                    if entity.PlayerControl.lft:
+                        entity.DirtySprite.rect.x -= entity.Speed.spd
+                        entity.DirtySprite.dirty = 1
+                    elif entity.PlayerControl.rgt:
+                        entity.DirtySprite.rect.x += entity.Speed.spd
+                        entity.DirtySprite.dirty = 1
+                    elif not entity.PlayerControl.up and not entity.PlayerControl.dwn:
+                        entity.DirtySprite.dirty = 0
 
 class FireSystem():
     def __init__(self):
@@ -67,14 +67,14 @@ class FireSystem():
 
     def update(self, entities):
         for entity in entities:
-            if entity.cs['Fire'].fire and not entity.cs['Fire'].over:
+            if entity.Fire.fire and not entity.Fire.over:
                 pass #Shoot lasers
-            elif entity.cs['Fire'].over:
-                entity.cs['Fire'].overt += 1
+            elif entity.Fire.over:
+                entity.Fire.overt += 1
 
-            if entity.cs['Fire'].overt == entity.cs['Fire'].overtm:
-                entity.cs['Fire'].overt = 0
-                entity.cs['Fire'].over = False
+            if entity.Fire.overt == entity.Fire.overtm:
+                entity.Fire.overt = 0
+                entity.Fire.over = False
 
 class DrawSystem():
     def __init__(self):

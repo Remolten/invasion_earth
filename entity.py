@@ -4,6 +4,7 @@
 class Entity():
     def __init__(self, id, *components):
         self.id = id
+        self.cs = []
         for c in components:
-            cid = c.id
-            self.cid = c
+            self.__dict__[c.id] = c
+            self.cs.append(c.id)

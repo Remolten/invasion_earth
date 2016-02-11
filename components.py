@@ -13,9 +13,9 @@ class DirtySprite(DirtySprite):
         self.dirty = 1 # Hack to make it show initially
 
 class Speed():
-    def __init__(self, spd, rotspd, thrust):
+    def __init__(self, maxspd, rotspd, thrust):
         self.id = 'Speed'
-        self.spd = spd
+        self.maxspd = maxspd
         self.rotspd = rotspd
         self.thrust = thrust
 

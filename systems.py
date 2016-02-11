@@ -54,10 +54,8 @@ class MovementSystem():
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
                     if entity.PlayerControl.up:
-                        #entity.DirtySprite.rect.x = entity.DirtySprite.rect.x + entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90))
-                        #entity.DirtySprite.rect.y = entity.DirtySprite.rect.y + entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90))
-                        entity.DirtySprite.dx += entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
-                        entity.DirtySprite.dy += entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
+                        entity.DirtySprite.dx += entity.Speed.maxspd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
+                        entity.DirtySprite.dy += entity.Speed.maxspd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
                         entity.DirtySprite.dirty = 1
                     elif entity.PlayerControl.dwn:
                         pass # Not needed unless we add virtual brakes
@@ -75,6 +73,8 @@ class MovementSystem():
                         entity.DirtySprite.dirty = 0
 
                     # Change sprite location based on momentum
+                    entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
+                    entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
                     entity.DirtySprite.rect.x += entity.DirtySprite.dx
                     entity.DirtySprite.rect.y += entity.DirtySprite.dy
 

@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 
+import math
+
 # Utility function which when used via yield will pause for x frames
 def wait(frames):
     ct = 0
@@ -52,11 +54,11 @@ class MovementSystem():
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
                     if entity.PlayerControl.up:
-                        entity.DirtySprite.rect.y -= entity.Speed.spd
+                        entity.DirtySprite.rect.x = entity.DirtySprite.rect.x + entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90))
+                        entity.DirtySprite.rect.y = entity.DirtySprite.rect.y + entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90))
                         entity.DirtySprite.dirty = 1
                     elif entity.PlayerControl.dwn:
-                        entity.DirtySprite.rect.y += entity.Speed.spd
-                        entity.DirtySprite.dirty = 1
+                        pass # Not needed unless we add virtual brakes
                     if entity.PlayerControl.lft:
                         entity.DirtySprite.angle += entity.Speed.rotspd
                         entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)

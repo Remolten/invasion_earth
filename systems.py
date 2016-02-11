@@ -30,7 +30,6 @@ class EventSystem():
                         entity.PlayerControl.lft = False
                     if event.key == K_SPACE and entity.Fire != None:
                         entity.Fire.fire = True
-                        entity.Fire.over = True
 
                 if event.type == KEYUP:
                     if event.key == K_UP or event.key == ord('w'):
@@ -52,7 +51,6 @@ class MovementSystem():
         for entity in entities:
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
-                    #FIXME Dirty is glitched up
                     if entity.PlayerControl.up:
                         entity.DirtySprite.rect.y -= entity.Speed.spd
                         entity.DirtySprite.dirty = 1
@@ -60,10 +58,14 @@ class MovementSystem():
                         entity.DirtySprite.rect.y += entity.Speed.spd
                         entity.DirtySprite.dirty = 1
                     if entity.PlayerControl.lft:
-                        entity.DirtySprite.rect.x -= entity.Speed.spd
+                        entity.DirtySprite.angle += entity.Speed.rotspd
+                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
+                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
                         entity.DirtySprite.dirty = 1
                     elif entity.PlayerControl.rgt:
-                        entity.DirtySprite.rect.x += entity.Speed.spd
+                        entity.DirtySprite.angle -= entity.Speed.rotspd
+                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
+                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
                         entity.DirtySprite.dirty = 1
                     elif not entity.PlayerControl.up and not entity.PlayerControl.dwn:
                         entity.DirtySprite.dirty = 0
@@ -76,7 +78,8 @@ class FireSystem():
         for entity in entities:
             if entity.has('Fire'):
                 if entity.Fire.fire and not entity.Fire.over:
-                    pass #Shoot lasers
+                    entity.Fire.over = True
+                    #Shoot lasers
                 elif entity.Fire.over:
                     entity.Fire.overt += 1
 

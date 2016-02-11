@@ -5,13 +5,16 @@ class DirtySprite(DirtySprite):
         super(DirtySprite, self).__init__()
         self.id = 'DirtySprite'
         self.image = img
+        self.ogimage = img # For rotations
         self.rect = rect
-        self.dirty = 1 #Hack to make it show initially
+        self.angle = 0
+        self.dirty = 1 # Hack to make it show initially
 
 class Speed():
-    def __init__(self, spd):
+    def __init__(self, spd, rotspd):
         self.id = 'Speed'
         self.spd = spd
+        self.rotspd = rotspd
 
 class PlayerControl():
     def __init__(self):

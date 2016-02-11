@@ -23,12 +23,12 @@ class Game:
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
 
         self.eventSystem = EventSystem()
-        self.movementSystem = MovementSystem()
+        self.movementSystem = MovementSystem(self.screen.get_rect())
         self.drawSystem = DrawSystem()
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6), PlayerControl(), Fire())
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(3, 6, 0.06), PlayerControl(), Fire())
         self.entities.append(self.plr)
         self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         #aliens = OrderedUpdatesModded()

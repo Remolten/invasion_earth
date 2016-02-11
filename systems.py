@@ -46,16 +46,18 @@ class EventSystem():
                         entity.Fire.fire = False
 
 class MovementSystem():
-    def __init__(self):
-        pass
+    def __init__(self, screen_rect):
+        self.screen_rect = screen_rect
 
     def update(self, entities):
         for entity in entities:
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
                     if entity.PlayerControl.up:
-                        entity.DirtySprite.rect.x = entity.DirtySprite.rect.x + entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90))
-                        entity.DirtySprite.rect.y = entity.DirtySprite.rect.y + entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90))
+                        #entity.DirtySprite.rect.x = entity.DirtySprite.rect.x + entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90))
+                        #entity.DirtySprite.rect.y = entity.DirtySprite.rect.y + entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90))
+                        entity.DirtySprite.dx += entity.Speed.spd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
+                        entity.DirtySprite.dy += entity.Speed.spd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
                         entity.DirtySprite.dirty = 1
                     elif entity.PlayerControl.dwn:
                         pass # Not needed unless we add virtual brakes
@@ -69,8 +71,15 @@ class MovementSystem():
                         entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
                         entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
                         entity.DirtySprite.dirty = 1
-                    elif not entity.PlayerControl.up and not entity.PlayerControl.dwn:
+                    elif not entity.PlayerControl.up: #and not entity.PlayerControl.dwn:
                         entity.DirtySprite.dirty = 0
+
+                    # Change sprite location based on momentum
+                    entity.DirtySprite.rect.x += entity.DirtySprite.dx
+                    entity.DirtySprite.rect.y += entity.DirtySprite.dy
+
+                    # Keep sprite inside the screen
+                    entity.DirtySprite.rect.clamp_ip(self.screen_rect)
 
 class FireSystem():
     def __init__(self):

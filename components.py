@@ -7,14 +7,17 @@ class DirtySprite(DirtySprite):
         self.image = img
         self.ogimage = img # For rotations
         self.rect = rect
-        self.angle = 0
+        self.angle = 0 # Rotation of the sprite, rect will be off
+        self.dx = 0 # These are for momentum
+        self.dy = 0
         self.dirty = 1 # Hack to make it show initially
 
 class Speed():
-    def __init__(self, spd, rotspd):
+    def __init__(self, spd, rotspd, thrust):
         self.id = 'Speed'
         self.spd = spd
         self.rotspd = rotspd
+        self.thrust = thrust
 
 class PlayerControl():
     def __init__(self):

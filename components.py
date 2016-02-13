@@ -12,14 +12,14 @@ class DirtySprite(DirtySprite):
         self.dy = 0
         self.dirty = 1 # Hack to make it show initially
 
-class Speed():
+class Speed(object):
     def __init__(self, maxspd, rotspd, thrust):
         self.id = 'Speed'
         self.maxspd = maxspd
         self.rotspd = rotspd
         self.thrust = thrust
 
-class PlayerControl():
+class PlayerControl(object):
     def __init__(self):
         self.id = 'PlayerControl'
         self.up = False
@@ -27,12 +27,12 @@ class PlayerControl():
         self.lft = False
         self.rgt = False
 
-class Health():
+class Health(object):
     def __init__(self, hlth):
         self.id = 'Health'
         self.hlth = hlth
 
-class Fire():
+class Fire(object):
     def __init__(self):
         self.id = 'Fire'
         self.fire = False
@@ -40,7 +40,7 @@ class Fire():
         self.overt = 0
         self.overtm = 20 #To be tweaked
 
-class Flash():
+class Flash(object):
     def __init__(self):
         self.id = 'Flash'
         self.flsh = False

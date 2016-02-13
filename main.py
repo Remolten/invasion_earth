@@ -10,7 +10,7 @@ from entity import *
 from components import *
 from systems import *
 
-class Game:
+class Game(object):
     def __init__(self):
         self.ssx = 1000
         self.ssy = 800

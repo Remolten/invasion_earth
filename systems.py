@@ -10,7 +10,7 @@ def wait(frames):
         ct += 1
         yield frames - ct
 
-class EventSystem():
+class EventSystem(object):
     def __init__(self):
         pass
 
@@ -45,7 +45,7 @@ class EventSystem():
                     if event.key == K_SPACE and entity.Fire != None:
                         entity.Fire.fire = False
 
-class MovementSystem():
+class MovementSystem(object):
     def __init__(self, screen_rect):
         self.screen_rect = screen_rect
 
@@ -81,7 +81,7 @@ class MovementSystem():
                     # Keep sprite inside the screen
                     entity.DirtySprite.rect.clamp_ip(self.screen_rect)
 
-class FireSystem():
+class FireSystem(object):
     def __init__(self):
         pass
 
@@ -98,7 +98,7 @@ class FireSystem():
                     entity.Fire.overt = 0
                     entity.Fire.over = False
 
-class DrawSystem():
+class DrawSystem(object):
     def __init__(self):
         self.rlst = []
 
@@ -118,6 +118,6 @@ class DrawSystem():
                 self.rlst.append(spritegroup.sprite.rect)
 
 # Hopefully this will eventually presort entities into relevant groups
-class EntityGroupSystem():
+class EntityGroupSystem(object):
     def __init__(self):
         pass

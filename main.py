@@ -16,6 +16,7 @@ class Game(object):
         self.ssy = 800
         pygame.init()
         self.screen = pygame.display.set_mode((self.ssx, self.ssy))
+        self.screenRect = self.screen.get_rect()
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
 
@@ -25,14 +26,16 @@ class Game(object):
         # Scale down by factor of 2
         self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / 2, self.plrimg.get_height() / 2))
 
+        self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
-        self.movementSystem = MovementSystem(self.screen.get_rect())
+        self.movementSystem = MovementSystem()
         self.drawSystem = DrawSystem()
 
     def start(self):
         self.entities = []
         self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(5, 6, 0.06), PlayerControl(), Fire())
         self.entities.append(self.plr)
+        self.entitiesDict = self.entityGroupSystem.isort(self.entities)
         self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
@@ -152,9 +155,9 @@ class Game(object):
             #self.plr.update()
             #self.plrgrp.draw(window)
             #TODO create the groups
-            self.movementSystem.update(self.entities)
-            self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
-            pygame.display.update(self.drawSystem.rlst)
+            self.movementSystem.update(self.screenRect, *self.entityGroupSystem.ret(self.entitiesDict, 'DirtySprite'))
+            rlst = self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
+            pygame.display.update(rlst)
             self.clock.tick(60)
 
 if __name__ == '__main__':

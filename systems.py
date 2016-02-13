@@ -46,10 +46,10 @@ class EventSystem(object):
                         entity.Fire.fire = False
 
 class MovementSystem(object):
-    def __init__(self, screen_rect):
-        self.screen_rect = screen_rect
+    def __init__(self):
+        pass
 
-    def update(self, entities):
+    def update(self, screenrect, entities):
         for entity in entities:
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
@@ -79,7 +79,7 @@ class MovementSystem(object):
                     entity.DirtySprite.rect.y += entity.DirtySprite.dy
 
                     # Keep sprite inside the screen
-                    entity.DirtySprite.rect.clamp_ip(self.screen_rect)
+                    entity.DirtySprite.rect.clamp_ip(screenrect)
 
 class FireSystem(object):
     def __init__(self):
@@ -98,13 +98,14 @@ class FireSystem(object):
                     entity.Fire.overt = 0
                     entity.Fire.over = False
 
+# This must be revamped to take entity lists, not sprite groups
 class DrawSystem(object):
     def __init__(self):
-        self.rlst = []
+        pass
 
     def draw(self, screen, bg, *spritegroups):
         screen.fill((0, 0, 0))
-        self.rlst = []
+        rlst = []
         for spritegroup in spritegroups:
             #group.clear(screen, bg) Needs to be the size of the screen
             rcts = spritegroup.draw(screen)
@@ -112,12 +113,31 @@ class DrawSystem(object):
             #FIXME LayeredDirty groups are broken???
             if rcts != None:
                 for rct in rcts:
-                    self.rlst.append(rct)
+                    rlst.append(rct)
             #We are dealing with a GroupSingle
             else:
-                self.rlst.append(spritegroup.sprite.rect)
+                rlst.append(spritegroup.sprite.rect)
+        return rlst
 
-# Hopefully this will eventually presort entities into relevant groups
+# TODO manage pygame draw groups?
 class EntityGroupSystem(object):
     def __init__(self):
         pass
+
+    def isort(self, entities):
+        entitydict = {}
+        return self.sort(entitydict, entities)
+
+    def sort(self, entitydict, entities):
+        for entity in entities:
+            for component in entity.cs: # inefficient but functional
+                entitydict[component] = [] if component not in entitydict.keys() else entitydict[component]
+                entitydict[component].append(entity)
+        return entitydict
+
+    def ret(self, entitydict, *types):
+        _return = []
+        for type in types:
+            if type in entitydict.keys():
+                _return.append(entitydict[type])
+        return _return

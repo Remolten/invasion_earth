@@ -18,8 +18,8 @@ class Entity(object):
             del self.__dict__[component.id]
             self.cs.remove(component.id) #probably syntax is incorrect
 
-    def has(self, *component_strs):
-        for component_str in component_strs:
-            if not hasattr(self, component_str):
+    def has(self, *componentstrs):
+        for componentstr in componentstrs:
+            if not hasattr(self, componentstr):
                 return False
         return True

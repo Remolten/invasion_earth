@@ -22,6 +22,9 @@ class Game(object):
         self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'purple.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
 
+        # Scale down by factor of 2
+        self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / 2, self.plrimg.get_height() / 2))
+
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem(self.screen.get_rect())
         self.drawSystem = DrawSystem()

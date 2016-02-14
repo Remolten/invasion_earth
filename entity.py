@@ -1,6 +1,5 @@
 # Components must have unique string ids
 # Components are accessed directly eg entity.component
-# TODO set id internally?
 
 class Entity(object):
     def __init__(self, id, *components):

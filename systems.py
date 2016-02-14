@@ -14,7 +14,7 @@ class EventSystem(object):
     def __init__(self):
         pass
 
-    def update(self, entities, event):
+    def update(self, event, entities):
         for entity in entities:
             if entity.has('PlayerControl', 'Fire'):
                 if event.type == KEYDOWN:
@@ -135,9 +135,9 @@ class EntityGroupSystem(object):
                 entitydict[component].append(entity)
         return entitydict
 
-    def ret(self, entitydict, *types):
+    def get(self, entitydict, *types):
         _return = []
         for type in types:
             if type in entitydict.keys():
                 _return.append(entitydict[type])
-        return _return
+        return _return if _return else [[]]

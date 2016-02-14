@@ -33,7 +33,7 @@ class Game(object):
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(5, 6, 0.06), PlayerControl(), Fire())
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(5, 6, 0.06), PlayerControl(), Fire(), Movement(), Events())
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
         self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
@@ -54,7 +54,7 @@ class Game(object):
                         pygame.quit()
                         sys.exit()
 
-                self.eventSystem.update(self.entities, event)
+                self.eventSystem.update(event, *self.entityGroupSystem.get(self.entitiesDict, 'Events'))
 
                 '''if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
@@ -155,7 +155,7 @@ class Game(object):
             #self.plr.update()
             #self.plrgrp.draw(window)
             #TODO create the groups
-            self.movementSystem.update(self.screenRect, *self.entityGroupSystem.ret(self.entitiesDict, 'DirtySprite'))
+            self.movementSystem.update(self.screenRect, *self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
             pygame.display.update(rlst)
             self.clock.tick(60)

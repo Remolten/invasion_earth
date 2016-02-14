@@ -46,3 +46,13 @@ class Flash(object):
         self.flsh = False
         self.flshcd = False
         self.flshct = 0
+
+
+# Placeholder classes for easier EGS grouping
+class Movement(object):
+    def __init__(self):
+        self.id = 'Movement'
+
+class Events(object):
+    def __init__(self):
+        self.id = 'Events'

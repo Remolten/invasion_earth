@@ -139,5 +139,5 @@ class EntityGroupSystem(object):
         _return = []
         for type in types:
             if type in entitydict.keys():
-                _return.append(entitydict[type])
-        return _return if _return else [[]]
+                _return.append(*entitydict[type])
+        return _return

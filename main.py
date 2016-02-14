@@ -54,7 +54,7 @@ class Game(object):
                         pygame.quit()
                         sys.exit()
 
-                self.eventSystem.update(event, *self.entityGroupSystem.get(self.entitiesDict, 'Events'))
+                self.eventSystem.update(event, self.entityGroupSystem.get(self.entitiesDict, 'Events'))
 
                 '''if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
@@ -155,7 +155,7 @@ class Game(object):
             #self.plr.update()
             #self.plrgrp.draw(window)
             #TODO create the groups
-            self.movementSystem.update(self.screenRect, *self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
+            self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
             pygame.display.update(rlst)
             self.clock.tick(60)

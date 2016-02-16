@@ -12,8 +12,8 @@ from systems import *
 
 class Game(object):
     def __init__(self):
-        self.ssx = 1000
-        self.ssy = 800
+        self.ssx = 1280
+        self.ssy = 690
         pygame.init()
         self.screen = pygame.display.set_mode((self.ssx, self.ssy))
         self.screenRect = self.screen.get_rect()
@@ -24,7 +24,8 @@ class Game(object):
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
 
         # Scale down by factor of 2
-        self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / 2, self.plrimg.get_height() / 2))
+        downscale = 3
+        self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
 
         self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()

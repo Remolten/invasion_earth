@@ -47,6 +47,12 @@ class Flash(object):
         self.flshcd = False
         self.flshct = 0
 
+class PotentialField(object):
+    def __init__(self, *potentials): # supply lists of potential # + circle radius, order matters
+        self.id = 'PotentialField'
+        self.potential = []
+        for potential in potentials:
+            self.potential.append(potential)
 
 # Placeholder classes for easier EGS grouping
 class Movement(object):

@@ -5,10 +5,10 @@ import math
 
 # Utility function which when used via yield will pause for x frames
 def wait(frames):
-    ct = 0
-    while ct <= frames:
-        ct += 1
-        yield frames - ct
+    fr = frames
+    while fr > 0:
+        fr -= 1
+        yield fr
 
 class EventSystem(object):
     def __init__(self):
@@ -128,7 +128,7 @@ class EntityGroupSystem(object):
         entitydict = {}
         return self.sort(entitydict, entities)
 
-    def sort(self, entitydict, entities):
+    def sort(self, entitydict, entities): # might not want to pass all entities each frame
         for entity in entities:
             for component in entity.cs: # inefficient but functional
                 entitydict[component] = [] if component not in entitydict.keys() else entitydict[component]
@@ -141,3 +141,16 @@ class EntityGroupSystem(object):
             if type in entitydict.keys():
                 _return.append(*entitydict[type])
         return _return
+
+class PotentialFieldSystem(object):
+    def __init__(self):
+        pass
+
+    def map(self, entities):
+        map = []
+        for entity in entities:
+            if entity.has('PotentialField', 'DirtySprite'):
+                for i in range(len(entity.PotentialField.potential)):
+                    map.append(entity.DirtySprite.rect.center, entity.PotentialField.potential[i])
+
+        return map

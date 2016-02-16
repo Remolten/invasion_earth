@@ -36,7 +36,7 @@ class Game(object):
         self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(5, 6, 0.06), PlayerControl(), Fire(), Movement(), Events())
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
-        self.plrgrp = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
+        self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
 
@@ -156,7 +156,7 @@ class Game(object):
             #self.plrgrp.draw(window)
             #TODO create the groups
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
-            rlst = self.drawSystem.draw(self.screen, self.bg, self.plrgrp)
+            rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
             pygame.display.update(rlst)
             self.clock.tick(60)
 

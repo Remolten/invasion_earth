@@ -142,6 +142,16 @@ class EntityGroupSystem(object):
                 _return.append(*entitydict[type])
         return _return
 
+# Now we must intepret the potential on the map, and create the virtual circles
+# The enemies can then try and pathfind their way to the most attractive spots
+# In this case, the outer part of the player circle is attractive
+# Use slope for pathfinding atm, perhaps A* later if there is obstacles
+# Thus, all enemies will attempt to stay at a fixed distance circle away from the player
+# Obviously, diff enemy types can interpret the potential fields differently
+# Also, they can directly alter the potential field in some classes
+# Adding negative potential to enemies could help stop them from clustering around each other too much
+# Again, there are many interesting possibilities for the enemy types
+# It all depends on how well this does performance wise, which it should work perfectly fine for this game, even unoptimized
 class PotentialFieldSystem(object):
     def __init__(self):
         pass

@@ -34,7 +34,7 @@ class Game(object):
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(5, 6, 0.06), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(3, 6, 0.06), PlayerControl(), Fire(), Movement(), Events())
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)

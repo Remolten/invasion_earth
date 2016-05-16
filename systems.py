@@ -1,7 +1,10 @@
 import pygame
 from pygame.locals import *
 
-import math
+from entity import *
+from components import *
+
+import math, random
 
 # Utility function which when used via yield will pause for x frames
 def wait(frames):
@@ -52,37 +55,37 @@ class MovementSystem(object):
     def update(self, screenrect, entities):
         for entity in entities:
             if entity.has('DirtySprite', 'Speed'):
-                #if entity.has('PlayerControl'):
-                if entity.PlayerControl.up:
-                    entity.DirtySprite.dx += entity.Speed.maxspd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
-                    entity.DirtySprite.dy += entity.Speed.maxspd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
-                    entity.DirtySprite.dirty = 1
-                elif entity.PlayerControl.dwn:
-                    pass # Not needed unless we add virtual brakes
-                if entity.PlayerControl.lft:
-                    entity.DirtySprite.angle += entity.Speed.rotspd
-                    entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
-                    entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
-                    entity.DirtySprite.dirty = 1
-                elif entity.PlayerControl.rgt:
-                    entity.DirtySprite.angle -= entity.Speed.rotspd
-                    entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
-                    entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
-                    entity.DirtySprite.dirty = 1
-                elif not entity.PlayerControl.up: #and not entity.PlayerControl.dwn:
-                    # Add a slight amount of friction
-                    entity.DirtySprite.dx *= 0.97 if entity.DirtySprite.dx > 0.3 else 0.9
-                    entity.DirtySprite.dy *= 0.97 if entity.DirtySprite.dy > 0.3 else 0.9
-                    entity.DirtySprite.dirty = 0
+                if entity.has('PlayerControl'):
+                    if entity.PlayerControl.up:
+                        entity.DirtySprite.dx += entity.Speed.maxspd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
+                        entity.DirtySprite.dy += entity.Speed.maxspd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
+                        entity.DirtySprite.dirty = 1
+                    elif entity.PlayerControl.dwn:
+                        pass # Not needed unless we add virtual brakes
+                    if entity.PlayerControl.lft:
+                        entity.DirtySprite.angle += entity.Speed.rotspd
+                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
+                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
+                        entity.DirtySprite.dirty = 1
+                    elif entity.PlayerControl.rgt:
+                        entity.DirtySprite.angle -= entity.Speed.rotspd
+                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
+                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
+                        entity.DirtySprite.dirty = 1
+                    elif not entity.PlayerControl.up: #and not entity.PlayerControl.dwn:
+                        # Add a slight amount of friction
+                        entity.DirtySprite.dx *= 0.97 if entity.DirtySprite.dx > 0.3 else 0.9
+                        entity.DirtySprite.dy *= 0.97 if entity.DirtySprite.dy > 0.3 else 0.9
+                        #entity.DirtySprite.dirty = 0
 
-                # Change sprite location based on momentum
-                #entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
-                #entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
-                entity.DirtySprite.rect.x += entity.DirtySprite.dx
-                entity.DirtySprite.rect.y += entity.DirtySprite.dy
+                    # Change sprite location based on momentum
+                    #entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
+                    #entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
+                    entity.DirtySprite.rect.x += entity.DirtySprite.dx
+                    entity.DirtySprite.rect.y += entity.DirtySprite.dy
 
-                # Keep sprite inside the screen
-                entity.DirtySprite.rect.clamp_ip(screenrect)
+                    # Keep sprite inside the screen
+                    entity.DirtySprite.rect.clamp_ip(screenrect)
 
 class FireSystem(object):
     def __init__(self):
@@ -134,16 +137,29 @@ class EntityGroupSystem(object):
     def sort(self, entitydict, entities): # might not want to pass all entities each frame
         for entity in entities:
             for component in entity.cs: # inefficient but functional
-                entitydict[component] = [] if component not in entitydict.keys() else entitydict[component]
-                entitydict[component].append(entity)
+                if component not in entitydict.keys():
+                    entitydict[component] = []
+                elif entity not in entitydict[component]:
+                    entitydict[component].append(entity)
         return entitydict
 
     def get(self, entitydict, *types):
         _return = []
         for type in types:
             if type in entitydict.keys():
-                _return.append(*entitydict[type])
+                _return.extend(entitydict[type])
         return _return
+
+class AlienGeneratorSystem(object):
+    def __init__(self):
+        pass
+
+    def gen(self, entities, alimg, ssx, ssy, spriteGroup):
+        if random.randint(0, 120) == 11:
+            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, ssx), y = random.randint(0, ssy))), Speed(3, 6, 0.06), Movement())
+            entities.append(alien)
+            spriteGroup.add(alien.DirtySprite)
+        return entities, spriteGroup
 
 # Now we must intepret the potential on the map, and create the virtual circles
 # The enemies can then try and pathfind their way to the most attractive spots

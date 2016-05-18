@@ -4,7 +4,7 @@ pygame_sdl2.import_as_pygame()
 import pygame
 from pygame.locals import *
 
-import sys, os, random, time
+import sys, os, random
 
 from entity import *
 from components import *
@@ -42,7 +42,7 @@ class Game(object):
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(3, 6, 0.06), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
@@ -55,23 +55,24 @@ class Game(object):
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    pygame.quit()
+                    #pygame.quit() #seg faults for some reason
                     sys.exit()
 
                 if event.type == KEYUP:
                     if event.key == K_ESCAPE:
-                        pygame.quit()
+                        #pygame.quit()
                         sys.exit()
 
                 #call the egs outside of loop first to optimize
                 self.eventSystem.update(event, self.entityGroupSystem.get(self.entitiesDict, 'Events'))
 
-            self.entities, self.spriteGroup = self.alienGeneratorSystem.gen(self.entities, self.alimg, self.ssx, self.ssy, self.spriteGroup)
+            self.entities, self.spriteGroup = self.alienGeneratorSystem.gen(self.entities, self.alimg, self.screenRect, self.spriteGroup)
             self.entitiesDict = self.entityGroupSystem.sort(self.entitiesDict, self.entities)
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
             for alien in self.entityGroupSystem.get(self.entitiesDict, 'AIControl'):
                 if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
+                    self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien)
                     self.screen.blit(self.font.render("Game Over Loser", 1, (255,255,0)), (self.ssx / 4, self.ssy / 4))
                     self.gameover = True
             pygame.display.update(rlst)

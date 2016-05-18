@@ -78,9 +78,19 @@ class MovementSystem(object):
                         entity.DirtySprite.dy *= 0.97 if entity.DirtySprite.dy > 0.3 else 0.9
                         #entity.DirtySprite.dirty = 0
 
-                # Change sprite location based on momentum
-                #entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
-                #entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
+                # Keeps speed under max but at the same ratio
+                ratio = 1
+                if entity.DirtySprite.dx > entity.Speed.maxspd:
+                    ratio = entity.Speed.maxspd / entity.DirtySprite.dx
+                elif entity.DirtySprite.dx < -entity.Speed.maxspd:
+                    ratio = -entity.Speed.maxspd / entity.DirtySprite.dx
+                if entity.DirtySprite.dy > entity.Speed.maxspd:
+                    ratio = entity.Speed.maxspd / entity.DirtySprite.dy
+                elif entity.DirtySprite.dy < -entity.Speed.maxspd:
+                    ratio = -entity.Speed.maxspd / entity.DirtySprite.dy
+
+                entity.DirtySprite.dy *= ratio
+                entity.DirtySprite.dx *= ratio
                 entity.DirtySprite.rect.x += entity.DirtySprite.dx
                 entity.DirtySprite.rect.y += entity.DirtySprite.dy
 
@@ -150,19 +160,27 @@ class EntityGroupSystem(object):
         return entitydict
 
     def get(self, entitydict, *types):
-        _return = []
+        entities = []
         for type in types:
             if type in entitydict.keys():
-                _return.extend(entitydict[type])
-        return _return
+                entities.extend(entitydict[type])
+        return entities
+
+    def destroy(self, entitydict, entities, spriteGroup, *entityinstances):
+        for entity in entityinstances:
+            for component in entity.cs:
+                entitydict[component].remove(entity)
+            entities.remove(entity)
+            spriteGroup.remove(entity.DirtySprite)
+        return entitydict, entities, spriteGroup
 
 class AlienGeneratorSystem(object):
     def __init__(self):
         pass
 
-    def gen(self, entities, alimg, ssx, ssy, spriteGroup):
+    def gen(self, entities, alimg, screenrect, spriteGroup):
         if random.randint(0, 120) == 11:
-            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, ssx - alimg.get_width()), y = random.randint(0, ssy - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl())
+            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             entities.append(alien)

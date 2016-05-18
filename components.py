@@ -54,7 +54,7 @@ class PotentialField(object):
         for potential in potentials:
             self.potential.append(potential)
 
-# Placeholder classes for easier EGS grouping
+# Placeholder classes for easier EGS grouping and/or identification
 class Movement(object):
     def __init__(self):
         self.id = 'Movement'
@@ -62,3 +62,7 @@ class Movement(object):
 class Events(object):
     def __init__(self):
         self.id = 'Events'
+
+class AIControl(object):
+    def __init__(self):
+        self.id = 'AIControl'

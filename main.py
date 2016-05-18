@@ -4,7 +4,7 @@ pygame_sdl2.import_as_pygame()
 import pygame
 from pygame.locals import *
 
-import sys, os, random
+import sys, os, random, time
 
 from entity import *
 from components import *
@@ -16,11 +16,14 @@ class Game(object):
         #self.ssy = 690
         self.ssx = 800
         self.ssy = 600
+        self.gameover = False
         pygame.init()
         self.screen = pygame.display.set_mode((self.ssx, self.ssy))
         self.screenRect = self.screen.get_rect()
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont("monospace", 60)
+
 
         self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'purple.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
@@ -67,6 +70,10 @@ class Game(object):
             self.entitiesDict = self.entityGroupSystem.sort(self.entitiesDict, self.entities)
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
+            for alien in self.entityGroupSystem.get(self.entitiesDict, 'AIControl'):
+                if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
+                    self.screen.blit(self.font.render("Game Over Loser", 1, (255,255,0)), (self.ssx / 4, self.ssy / 4))
+                    self.gameover = True
             pygame.display.update(rlst)
             self.clock.tick(60)
 

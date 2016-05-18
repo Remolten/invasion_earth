@@ -78,14 +78,20 @@ class MovementSystem(object):
                         entity.DirtySprite.dy *= 0.97 if entity.DirtySprite.dy > 0.3 else 0.9
                         #entity.DirtySprite.dirty = 0
 
-                    # Change sprite location based on momentum
-                    #entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
-                    #entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
-                    entity.DirtySprite.rect.x += entity.DirtySprite.dx
-                    entity.DirtySprite.rect.y += entity.DirtySprite.dy
+                # Change sprite location based on momentum
+                #entity.DirtySprite.dx = entity.Speed.maxspd if entity.DirtySprite.dx > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dx < -entity.Speed.maxspd else entity.DirtySprite.dx
+                #entity.DirtySprite.dy = entity.Speed.maxspd if entity.DirtySprite.dy > entity.Speed.maxspd else -entity.Speed.maxspd if entity.DirtySprite.dy < -entity.Speed.maxspd else entity.DirtySprite.dy
+                entity.DirtySprite.rect.x += entity.DirtySprite.dx
+                entity.DirtySprite.rect.y += entity.DirtySprite.dy
 
-                    # Keep sprite inside the screen
-                    entity.DirtySprite.rect.clamp_ip(screenrect)
+                if entity.has('AIControl'):
+                    if entity.DirtySprite.rect.x < 0 or entity.DirtySprite.rect.x > screenrect.width - entity.DirtySprite.rect.width:
+                        entity.DirtySprite.dx *= -1
+                    if entity.DirtySprite.rect.y < 0 or entity.DirtySprite.rect.y > screenrect.height - entity.DirtySprite.rect.height:
+                        entity.DirtySprite.dy *= -1
+
+                # Keep sprite inside the screen
+                entity.DirtySprite.rect.clamp_ip(screenrect)
 
 class FireSystem(object):
     def __init__(self):
@@ -156,7 +162,9 @@ class AlienGeneratorSystem(object):
 
     def gen(self, entities, alimg, ssx, ssy, spriteGroup):
         if random.randint(0, 120) == 11:
-            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, ssx), y = random.randint(0, ssy))), Speed(3, 6, 0.06), Movement())
+            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, ssx - alimg.get_width()), y = random.randint(0, ssy - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl())
+            alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
+            alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             entities.append(alien)
             spriteGroup.add(alien.DirtySprite)
         return entities, spriteGroup

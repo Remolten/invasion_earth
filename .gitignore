@@ -19,10 +19,15 @@ lib
 lib64
 __pycache__
 
-#Assets
+# Assets
 *.png
 assets
 *.ttf
+
+# Other
+*.swp
+buildme
+*.spec
 
 # Installer logs
 pip-log.txt

@@ -48,6 +48,7 @@ class EventSystem(object):
                     if event.key == K_SPACE and entity.Fire != None:
                         entity.Fire.fire = False
 
+# Must separate the determination of dx dy etc. from actually editing the rect
 class MovementSystem(object):
     def __init__(self):
         pass
@@ -72,53 +73,76 @@ class MovementSystem(object):
                         entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
                         entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
                         entity.DirtySprite.dirty = 1
+                    elif entity.DirtySprite.dx == 0 and entity.DirtySprite.dy == 0:
+                        entity.DirtySprite.dirty = 0
                     elif not entity.PlayerControl.up: #and not entity.PlayerControl.dwn:
                         # Add a slight amount of friction
-                        entity.DirtySprite.dx *= 0.97 if entity.DirtySprite.dx > 0.3 else 0.9
-                        entity.DirtySprite.dy *= 0.97 if entity.DirtySprite.dy > 0.3 else 0.9
-                        #entity.DirtySprite.dirty = 0
-
-                # Keeps speed under max but at the same ratio
-                ratio = 1
-                if entity.DirtySprite.dx > entity.Speed.maxspd:
-                    ratio = entity.Speed.maxspd / entity.DirtySprite.dx
-                elif entity.DirtySprite.dx < -entity.Speed.maxspd:
-                    ratio = -entity.Speed.maxspd / entity.DirtySprite.dx
-                if entity.DirtySprite.dy > entity.Speed.maxspd:
-                    ratio = entity.Speed.maxspd / entity.DirtySprite.dy
-                elif entity.DirtySprite.dy < -entity.Speed.maxspd:
-                    ratio = -entity.Speed.maxspd / entity.DirtySprite.dy
-
-                entity.DirtySprite.dy *= ratio
-                entity.DirtySprite.dx *= ratio
-                entity.DirtySprite.rect.x += entity.DirtySprite.dx
-                entity.DirtySprite.rect.y += entity.DirtySprite.dy
+                        if entity.DirtySprite.dx > 0:
+                            entity.DirtySprite.dx *= 0.97 #if entity.DirtySprite.dx > 0.3 else 0.9
+                        elif entity.DirtySprite.dx < 0:
+                            entity.DirtySprite.dx *= 0.9
+                        if entity.DirtySprite.dy > 0:
+                            entity.DirtySprite.dy *= 0.97 #if entity.DirtySprite.dy > 0.3 else 0.9
+                        elif entity.DirtySprite.dy < 0:
+                            entity.DirtySprite.dy *= 0.9
+                        # you could make a case for letting the ship drift when it gets to low speeds
+                        if abs(entity.DirtySprite.dx) < 0.2:
+                            entity.DirtySprite.dx = 0
+                        if abs(entity.DirtySprite.dy) < 0.2:
+                            entity.DirtySprite.dy = 0
 
                 if entity.has('AIControl'):
-                    if entity.DirtySprite.rect.x < 0 or entity.DirtySprite.rect.x > screenrect.width - entity.DirtySprite.rect.width:
+                    if entity.DirtySprite.rect.x <= 0 or entity.DirtySprite.rect.x >= screenrect.width - entity.DirtySprite.rect.width:
                         entity.DirtySprite.dx *= -1
-                    if entity.DirtySprite.rect.y < 0 or entity.DirtySprite.rect.y > screenrect.height - entity.DirtySprite.rect.height:
+                    if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
                         entity.DirtySprite.dy *= -1
 
-                # Keep sprite inside the screen
-                entity.DirtySprite.rect.clamp_ip(screenrect)
+                # Keeps speed under maxspd but at the same ratio
+                entity.ratio = 1
+                if entity.DirtySprite.dx > entity.Speed.maxspd:
+                    entity.ratio = entity.Speed.maxspd / entity.DirtySprite.dx
+                elif entity.DirtySprite.dx < -entity.Speed.maxspd:
+                    entity.ratio = -entity.Speed.maxspd / entity.DirtySprite.dx
+                if entity.DirtySprite.dy > entity.Speed.maxspd:
+                    entity.ratio = entity.Speed.maxspd / entity.DirtySprite.dy
+                elif entity.DirtySprite.dy < -entity.Speed.maxspd:
+                    entity.ratio = -entity.Speed.maxspd / entity.DirtySprite.dy
+
+    def move(self, screenrect, entities):
+        for entity in entities:
+            entity.DirtySprite.dy *= entity.ratio
+            entity.DirtySprite.dx *= entity.ratio
+            entity.DirtySprite.rect.x += entity.DirtySprite.dx
+            entity.DirtySprite.rect.y += entity.DirtySprite.dy
+
+            # Keep sprite inside the screen
+            entity.DirtySprite.rect.clamp_ip(screenrect)
 
 class FireSystem(object):
     def __init__(self):
         pass
 
-    def update(self, entities):
+    def update(self, entities, spriteGroup, lsrimg, plr):
         for entity in entities:
             if entity.has('Fire'):
                 if entity.Fire.fire and not entity.Fire.over:
                     entity.Fire.over = True
-                    #Shoot lasers
+                    # TODO fix inaccurate laser placement
+                    laser = Entity('laser', DirtySprite(lsrimg, lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - lsrimg.get_height() / 2)), Speed(6, 6, 0.1), Movement(), AIControl(), Laser())
+                    laser.DirtySprite.angle = plr.DirtySprite.angle
+                    laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
+                    laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
+                    laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
+                    entities.append(laser)
+                    spriteGroup.add(laser.DirtySprite)
                 elif entity.Fire.over:
                     entity.Fire.overt += 1
 
                 if entity.Fire.overt == entity.Fire.overtm:
                     entity.Fire.overt = 0
                     entity.Fire.over = False
+
+        return entities, spriteGroup
 
 # This must be revamped to take entity lists, not sprite groups
 class DrawSystem(object):
@@ -179,8 +203,8 @@ class AlienGeneratorSystem(object):
         pass
 
     def gen(self, entities, alimg, screenrect, spriteGroup):
-        if random.randint(0, 120) == 11:
-            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl())
+        if random.randint(0, 120) == 11: # determines rate of gen
+            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             entities.append(alien)

@@ -10,6 +10,7 @@ class DirtySprite(DirtySprite):
         self.angle = 0 # Rotation of the sprite, rect will be off
         self.dx = 0 # These are for momentum
         self.dy = 0
+        self.ratio = 1
         self.dirty = 1 # Hack to make it show initially
 
 class Speed(object):
@@ -66,3 +67,11 @@ class Events(object):
 class AIControl(object):
     def __init__(self):
         self.id = 'AIControl'
+
+class Alien(object):
+    def __init__(self):
+        self.id = 'Alien'
+
+class Laser(object):
+    def __init__(self):
+        self.id = 'Laser'

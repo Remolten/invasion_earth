@@ -22,21 +22,25 @@ class Game(object):
         self.screenRect = self.screen.get_rect()
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
+        self.dt = 0
         self.font = pygame.font.SysFont("monospace", 60)
 
-
+        # TODO this probably needs to be changed but it will suffice for now
         self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'purple.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
+        self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
 
         # Scale down by factor of 3
         downscale = 3
         self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
         self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
+        self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
 
         self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem()
+        self.fireSystem = FireSystem()
         self.drawSystem = DrawSystem()
         self.alienGeneratorSystem = AlienGeneratorSystem()
 
@@ -69,14 +73,27 @@ class Game(object):
             self.entities, self.spriteGroup = self.alienGeneratorSystem.gen(self.entities, self.alimg, self.screenRect, self.spriteGroup)
             self.entitiesDict = self.entityGroupSystem.sort(self.entitiesDict, self.entities)
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
+            self.fireSystem.update(self.entities, self.spriteGroup, self.lsrimg, self.plr)
+            self.movementSystem.move(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
-            for alien in self.entityGroupSystem.get(self.entitiesDict, 'AIControl'):
+
+            for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):
                 if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
                     self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien)
-                    self.screen.blit(self.font.render("Game Over Loser", 1, (255,255,0)), (self.ssx / 4, self.ssy / 4))
                     self.gameover = True
+                    ct = 0
+                for laser in self.entityGroupSystem.get(self.entitiesDict, 'Laser'):
+                    if laser.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
+                        self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien, laser)
+            if self.gameover:
+                ct += 1
+                self.screen.blit(self.font.render("Game Over", 1, (255,255,0)), (self.ssx / 3, self.ssy / 3))
+                if ct == 120:
+                    ct = 0
+                    self.gameover = False
+
             pygame.display.update(rlst)
-            self.clock.tick(60)
+            self.dt = self.clock.tick(60)
 
 if __name__ == '__main__':
     game = Game()

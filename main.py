@@ -82,12 +82,13 @@ class Game(object):
                     self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien)
                     self.gameover = True
                     ct = 0
+                #quick hack to check that alien is not already destroyed, inefficient change later
                 for laser in self.entityGroupSystem.get(self.entitiesDict, 'Laser'):
-                    if laser.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
+                    if laser.DirtySprite.rect.colliderect(alien.DirtySprite.rect) and alien in self.entities:
                         self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien, laser)
             if self.gameover:
                 ct += 1
-                self.screen.blit(self.font.render("Game Over", 1, (255,255,0)), (self.ssx / 3, self.ssy / 3))
+                self.screen.blit(self.font.render("LOL You're Bad", 1, (255,255,0)), (self.ssx / 3, self.ssy / 3))
                 if ct == 120:
                     ct = 0
                     self.gameover = False

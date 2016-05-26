@@ -97,6 +97,13 @@ class MovementSystem(object):
                     if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
                         entity.DirtySprite.dy *= -1
 
+                    if entity.DirtySprite.dx != 0:
+                        entity.DirtySprite.angle = math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
+                    elif entity.DirtySprite.dy == 0:
+                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
+                    else:
+                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
+
                 # Keeps speed under maxspd but at the same ratio
                 entity.ratio = 1
                 if entity.DirtySprite.dx > entity.Speed.maxspd:

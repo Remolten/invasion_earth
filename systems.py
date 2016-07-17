@@ -53,7 +53,7 @@ class MovementSystem(object):
     def __init__(self):
         pass
 
-    def update(self, screenrect, entities):
+    def update(self, screenrect, entities, player):
         for entity in entities:
             if entity.has('DirtySprite', 'Speed'):
                 if entity.has('PlayerControl'):
@@ -91,18 +91,30 @@ class MovementSystem(object):
                         if abs(entity.DirtySprite.dy) < 0.2:
                             entity.DirtySprite.dy = 0
 
-                if entity.has('AIControl'):
+                if entity.has('Alien'):
                     if entity.DirtySprite.rect.x <= 0 or entity.DirtySprite.rect.x >= screenrect.width - entity.DirtySprite.rect.width:
-                        entity.DirtySprite.dx *= -1
+                        #entity.DirtySprite.dx *= -1
+                        #entity.DirtySprite.dx *= 0
+                        pass
                     if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
-                        entity.DirtySprite.dy *= -1
+                        #entity.DirtySprite.dy *= -1
+                        #entity.DirtySprite.dy *= 0
+                        pass
+                        
+                    # Here we set the aliens to track the player
+                    # All we have to do is set the angle to always face the player
+                    # Get slope and convert to degrees
+                    yslope = player.DirtySprite.rect.centery - entity.DirtySprite.rect.centery
+                    xslope = player.DirtySprite.rect.centerx - entity.DirtySprite.rect.centerx
+                    entity.DirtySprite.dx += entity.Speed.maxspd * xslope * entity.Speed.thrust
+                    entity.DirtySprite.dy += entity.Speed.maxspd * yslope * entity.Speed.thrust
 
-                    if entity.DirtySprite.dx != 0:
-                        entity.DirtySprite.angle = math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
-                    elif entity.DirtySprite.dy == 0:
-                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
-                    else:
-                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
+#                    if entity.DirtySprite.dx != 0:
+#                        entity.DirtySprite.angle = math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
+#                    elif entity.DirtySprite.dy == 0:
+#                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
+#                    else:
+#                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
 
                 # Keeps speed under maxspd but at the same ratio
                 entity.ratio = 1
@@ -211,7 +223,7 @@ class AlienGeneratorSystem(object):
 
     def gen(self, entities, alimg, screenrect, spriteGroup):
         if random.randint(0, 120) == 11: # determines rate of gen
-            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.06), Movement(), AIControl(), Alien())
+            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             entities.append(alien)

@@ -72,7 +72,7 @@ class Game(object):
 
             self.entities, self.spriteGroup = self.alienGeneratorSystem.gen(self.entities, self.alimg, self.screenRect, self.spriteGroup)
             self.entitiesDict = self.entityGroupSystem.sort(self.entitiesDict, self.entities)
-            self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
+            self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'), self.plr)
             self.fireSystem.update(self.entities, self.spriteGroup, self.lsrimg, self.plr)
             self.movementSystem.move(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
             rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
@@ -88,7 +88,7 @@ class Game(object):
                         self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien, laser)
             if self.gameover:
                 ct += 1
-                self.screen.blit(self.font.render("LOL You're Bad", 1, (255,255,0)), (self.ssx / 3, self.ssy / 3))
+                self.screen.blit(self.font.render("wATch out", 1, (255,255,0)), (self.ssx / 8, self.ssy / 3))
                 if ct == 120:
                     ct = 0
                     self.gameover = False

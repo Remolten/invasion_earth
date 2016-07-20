@@ -258,8 +258,9 @@ class JetAnimationSystem(object):
     def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
         reqimg = jetimgs[0]
         for i in range(2):
-            trail = Entity('jetTrail', DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID))
+            trail = Entity('jetTrail', DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
             trail.DirtySprite.imgs = jetimgs
+            trail.DirtySprite.dirty = 2 # Set it to always be repainted because it's animated every frame
             entities.append(trail)
             spriteGroup.add(trail.DirtySprite)
         return entities, spriteGroup
@@ -267,19 +268,36 @@ class JetAnimationSystem(object):
     def update(self, entities):
         for entity in entities:
             if entity.has('JetAnimation'):
-                player = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
+                if entity.JetAnimation.freqct == entity.JetAnimation.freq:
+                    if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
+                        entity.DirtySprite.imgindex = 0
+                    else:
+                        entity.DirtySprite.imgindex += 1
+
+                    entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
+                    entity.JetAnimation.freqct = 0
+                else:
+                    entity.JetAnimation.freqct += 1
+                
+                # Get the entity it is attached to
+                attachedToEntity = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
+                
+                entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.imgs[entity.DirtySprite.imgindex], attachedToEntity.DirtySprite.angle)
+                    
+                # Determine position relative to the entity its attached to
+                # Use the parametric equation of a circle
+                radius = max(attachedToEntity.DirtySprite.rect.width, attachedToEntity.DirtySprite.rect.height) / 1
+                x = radius * math.cos(math.radians(attachedToEntity.DirtySprite.angle + 270))
+                y = radius * math.sin(math.radians(attachedToEntity.DirtySprite.angle - 270))
                 
                 if entity.JetAnimation.pos == 0:
-                    entity.DirtySprite.rect = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.centerx + x, attachedToEntity.DirtySprite.rect.centery + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
                 else:
-                    entity.DirtySprite.rect = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width - player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-                
-                if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
-                    entity.DirtySprite.imgindex = 0
-                else:
-                    entity.DirtySprite.imgindex += 1
-                
-                entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
+                    pass
+#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width - attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + x, attachedToEntity.DirtySprite.rect.y + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+
 
 # Now we must intepret the potential on the map, and create the virtual circles
 # The enemies can then try and pathfind their way to the most attractive spots

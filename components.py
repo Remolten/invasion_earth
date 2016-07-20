@@ -75,10 +75,12 @@ class PotentialField(object):
             self.potential.append(potential)
             
 class JetAnimation(object):
-    def __init__(self, pos, attachedEntityID):
+    def __init__(self, pos, attachedEntityID, freq):
         self.id = 'JetAnimation'
         self.pos = pos # AKA is this the left or right trail, == to 0 or 1 respectively
         self.attachedid = attachedEntityID
+        self.freq = freq # AKA change image every freq frames
+        self.freqct = 0
 
 # Placeholder classes for easier EGS grouping and/or identification
 class Movement(object):

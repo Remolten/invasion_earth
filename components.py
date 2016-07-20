@@ -54,6 +54,18 @@ class PotentialField(object):
         self.potential = []
         for potential in potentials:
             self.potential.append(potential)
+            
+class JetAnimation(object):
+    def __init__(self, rect, *images):
+        self.id = 'JetAnimation'
+        self.imgs = []
+        for image in images:
+            self.imgs.append(image)
+            
+        self.rect1 = rect
+        self.rect2 = rect
+        self.imgindex = 0
+        self.currentimg = self.imgs[self.imgindex]
 
 # Placeholder classes for easier EGS grouping and/or identification
 class Movement(object):

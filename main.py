@@ -4,7 +4,7 @@ pygame_sdl2.import_as_pygame()
 import pygame
 from pygame.locals import *
 
-import sys, os, random
+import sys, os
 
 from entity import *
 from components import *
@@ -30,12 +30,18 @@ class Game(object):
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
         self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
+        self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
+        self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
+        self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
 
         # Scale down by factor of 3
         downscale = 3
         self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
         self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
         self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
+        self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
+        self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
+        self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
 
         self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
@@ -43,10 +49,11 @@ class Game(object):
         self.fireSystem = FireSystem()
         self.drawSystem = DrawSystem()
         self.alienGeneratorSystem = AlienGeneratorSystem()
+        self.jetAnimationSystem = JetAnimationSystem()
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), JetAnimation(pygame.Rect(0, 0, 0, 0), self.jet1, self.jet4, self.jet5), PlayerControl(), Fire(), Movement(), Events())
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
@@ -75,6 +82,7 @@ class Game(object):
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'), self.plr)
             self.fireSystem.update(self.entities, self.spriteGroup, self.lsrimg, self.plr)
             self.movementSystem.move(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
+            self.jetAnimationSystem.update(self.entities, self.plr, self.screen)
             rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
 
             for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):

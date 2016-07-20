@@ -91,16 +91,7 @@ class MovementSystem(object):
                         if abs(entity.DirtySprite.dy) < 0.2:
                             entity.DirtySprite.dy = 0
 
-                if entity.has('Alien'):
-                    if entity.DirtySprite.rect.x <= 0 or entity.DirtySprite.rect.x >= screenrect.width - entity.DirtySprite.rect.width:
-                        #entity.DirtySprite.dx *= -1
-                        #entity.DirtySprite.dx *= 0
-                        pass
-                    if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
-                        #entity.DirtySprite.dy *= -1
-                        #entity.DirtySprite.dy *= 0
-                        pass
-                        
+                if entity.has('Alien'):  
                     # Here we set the aliens to track the player
                     # All we have to do is set the angle to always face the player
                     # Get slope and convert to degrees
@@ -108,13 +99,22 @@ class MovementSystem(object):
                     xslope = player.DirtySprite.rect.centerx - entity.DirtySprite.rect.centerx
                     entity.DirtySprite.dx += entity.Speed.maxspd * xslope * entity.Speed.thrust
                     entity.DirtySprite.dy += entity.Speed.maxspd * yslope * entity.Speed.thrust
-
-#                    if entity.DirtySprite.dx != 0:
-#                        entity.DirtySprite.angle = math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
-#                    elif entity.DirtySprite.dy == 0:
-#                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
-#                    else:
-#                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
+                    
+                if entity.has('Laser'):
+                    if entity.DirtySprite.rect.x <= 0 or entity.DirtySprite.rect.x >= screenrect.width - entity.DirtySprite.rect.width:
+                        entity.DirtySprite.dx *= -1
+                    if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
+                        entity.DirtySprite.dy *= -1
+                    
+                    if entity.DirtySprite.dx != 0:
+                        entity.DirtySprite.angle = 90 - math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
+                    elif entity.DirtySprite.dy == 0:
+                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
+                    else:
+                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
+                        
+                    entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
+                    entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
 
                 # Keeps speed under maxspd but at the same ratio
                 entity.ratio = 1
@@ -147,7 +147,7 @@ class FireSystem(object):
                 if entity.Fire.fire and not entity.Fire.over:
                     entity.Fire.over = True
                     # TODO fix inaccurate laser placement
-                    laser = Entity('laser', DirtySprite(lsrimg, lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - lsrimg.get_height() / 2)), Speed(6, 6, 0.1), Movement(), AIControl(), Laser())
+                    laser = Entity('laser', DirtySprite(lsrimg, lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
                     laser.DirtySprite.angle = plr.DirtySprite.angle
                     laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
                     laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
@@ -229,6 +229,22 @@ class AlienGeneratorSystem(object):
             entities.append(alien)
             spriteGroup.add(alien.DirtySprite)
         return entities, spriteGroup
+    
+class JetAnimationSystem(object):
+    def __init__(self):
+        pass
+    
+    def update(self, entities, player, screen):
+        for entity in entities:
+            if entity.has('JetAnimation'):
+                entity.JetAnimation.rect1 = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.JetAnimation.currentimg.get_width(), entity.JetAnimation.currentimg.get_height())
+                entity.JetAnimation.rect2 = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width - player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.JetAnimation.currentimg.get_width(), entity.JetAnimation.currentimg.get_height())
+
+                screen.blit(entity.JetAnimation.currentimg, entity.JetAnimation.rect1)
+                screen.blit(entity.JetAnimation.currentimg, entity.JetAnimation.rect2)
+                pygame.display.update([entity.JetAnimation.rect1, entity.JetAnimation.rect2])
+                
+                entity.JetAnimation.currentimg = entity.JetAnimation.imgs[0 if entity.JetAnimation.imgindex + 1 > len(entity.JetAnimation.imgs) - 1 else entity.JetAnimation.imgindex + 1]
 
 # Now we must intepret the potential on the map, and create the virtual circles
 # The enemies can then try and pathfind their way to the most attractive spots

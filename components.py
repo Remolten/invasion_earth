@@ -23,6 +23,8 @@ class DirtySprite(DirtySprite):
         self.id = 'DirtySprite'
         self.image = img
         self.ogimage = img # For rotations
+        self.imgs = [] # For animated sprites
+        self.imgindex = 0
         self.rect = rect
         self.angle = 0 # Rotation of the sprite, rect will be off
         self.dx = 0 # These are for momentum
@@ -73,16 +75,10 @@ class PotentialField(object):
             self.potential.append(potential)
             
 class JetAnimation(object):
-    def __init__(self, rect, *images):
+    def __init__(self, pos, attachedEntityID):
         self.id = 'JetAnimation'
-        self.imgs = []
-        for image in images:
-            self.imgs.append(image)
-            
-        self.rect1 = rect
-        self.rect2 = rect
-        self.imgindex = 0
-        self.currentimg = self.imgs[self.imgindex]
+        self.pos = pos # AKA is this the left or right trail, == to 0 or 1 respectively
+        self.attachedid = attachedEntityID
 
 # Placeholder classes for easier EGS grouping and/or identification
 class Movement(object):

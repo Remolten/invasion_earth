@@ -185,9 +185,13 @@ class DrawSystem(object):
     def __init__(self):
         pass
 
-    def draw(self, screen, bg, *spritegroups):
+    def draw(self, screen, screenrect, bg, *spritegroups):
         screen.fill((0, 0, 0))
-        rlst = []
+        screen.blit(bg, pygame.Rect(0, 0, bg.get_width(), bg.get_height()))
+        screen.blit(bg, pygame.Rect(bg.get_width(), 0, bg.get_width(), bg.get_height()))
+        screen.blit(bg, pygame.Rect(0, bg.get_height(), bg.get_width(), bg.get_height()))
+        screen.blit(bg, pygame.Rect(bg.get_width(), bg.get_height(), bg.get_width(), bg.get_height()))
+        rlst = [screenrect]
         for spritegroup in spritegroups:
             #group.clear(screen, bg) Needs to be the size of the screen
             rcts = spritegroup.draw(screen)
@@ -251,17 +255,31 @@ class JetAnimationSystem(object):
     def __init__(self):
         pass
     
-    def update(self, entities, player, screen):
+    def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
+        reqimg = jetimgs[0]
+        for i in range(2):
+            trail = Entity('jetTrail', DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID))
+            trail.DirtySprite.imgs = jetimgs
+            entities.append(trail)
+            spriteGroup.add(trail.DirtySprite)
+        return entities, spriteGroup
+    
+    def update(self, entities):
         for entity in entities:
             if entity.has('JetAnimation'):
-                entity.JetAnimation.rect1 = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.JetAnimation.currentimg.get_width(), entity.JetAnimation.currentimg.get_height())
-                entity.JetAnimation.rect2 = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width - player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.JetAnimation.currentimg.get_width(), entity.JetAnimation.currentimg.get_height())
-
-                screen.blit(entity.JetAnimation.currentimg, entity.JetAnimation.rect1)
-                screen.blit(entity.JetAnimation.currentimg, entity.JetAnimation.rect2)
-                pygame.display.update([entity.JetAnimation.rect1, entity.JetAnimation.rect2])
+                player = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
                 
-                entity.JetAnimation.currentimg = entity.JetAnimation.imgs[0 if entity.JetAnimation.imgindex + 1 > len(entity.JetAnimation.imgs) - 1 else entity.JetAnimation.imgindex + 1]
+                if entity.JetAnimation.pos == 0:
+                    entity.DirtySprite.rect = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+                else:
+                    entity.DirtySprite.rect = pygame.Rect(player.DirtySprite.rect.x + player.DirtySprite.rect.width - player.DirtySprite.rect.width / 7, player.DirtySprite.rect.y + player.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+                
+                if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
+                    entity.DirtySprite.imgindex = 0
+                else:
+                    entity.DirtySprite.imgindex += 1
+                
+                entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
 
 # Now we must intepret the potential on the map, and create the virtual circles
 # The enemies can then try and pathfind their way to the most attractive spots

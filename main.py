@@ -43,13 +43,15 @@ class Game(object):
         self.font = pygame.font.SysFont("monospace", 60)
 
         # TODO this probably needs to be changed but it will suffice for now
-        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'purple.png')).convert()
+        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
         self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
         self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
         self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
         self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
+        
+        self.jetimgs = [self.jet1, self.jet4, self.jet5]
 
         # Scale down by factor of 3
         downscale = 3
@@ -70,10 +72,11 @@ class Game(object):
 
     def start(self):
         self.entities = []
-        self.plr = Entity('plr', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), JetAnimation(pygame.Rect(0, 0, 0, 0), self.jet1, self.jet4, self.jet5), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
+        self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
+        self.entities, self.spriteGroup = self.jetAnimationSystem.create(self.entities, self.plr.id, self.spriteGroup, self.jetimgs)
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
-        self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         #aliens = OrderedUpdatesModded()
         #powerups = OrderedUpdatesModded()
 
@@ -99,8 +102,8 @@ class Game(object):
             self.movementSystem.update(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'), self.plr)
             self.fireSystem.update(self.entities, self.spriteGroup, self.lsrimg, self.plr)
             self.movementSystem.move(self.screenRect, self.entityGroupSystem.get(self.entitiesDict, 'Movement'))
-            self.jetAnimationSystem.update(self.entities, self.plr, self.screen)
-            rlst = self.drawSystem.draw(self.screen, self.bg, self.spriteGroup)
+            self.jetAnimationSystem.update(self.entities)
+            rlst = self.drawSystem.draw(self.screen, self.screenRect, self.bg, self.spriteGroup)
 
             for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):
                 if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):

@@ -18,19 +18,18 @@
 import pygame
 from pygame.locals import *
 
-from entity import *
-from components import *
+from simpyl import System
 
 import math, random
 
 # Utility function which when used via yield will pause for x frames
-def wait(frames):
-    fr = frames
-    while fr > 0:
-        fr -= 1
-        yield fr
+#def wait(frames):
+#    fr = frames
+#    while fr > 0:
+#        fr -= 1
+#        yield fr
 
-class EventSystem(object):
+class EventSystem(System):
     def __init__(self):
         pass
 
@@ -66,7 +65,7 @@ class EventSystem(object):
                         entity.Fire.fire = False
 
 # Must separate the determination of dx dy etc. from actually editing the rect
-class MovementSystem(object):
+class MovementSystem(System):
     def __init__(self):
         pass
 
@@ -154,7 +153,7 @@ class MovementSystem(object):
             # Keep sprite inside the screen
             entity.DirtySprite.rect.clamp_ip(screenrect)
 
-class FireSystem(object):
+class FireSystem(System):
     def __init__(self):
         pass
 
@@ -181,7 +180,7 @@ class FireSystem(object):
         return entities, spriteGroup
 
 # This must be revamped to take entity lists, not sprite groups
-class DrawSystem(object):
+class DrawSystem(System):
     def __init__(self):
         pass
 
@@ -206,7 +205,7 @@ class DrawSystem(object):
         return rlst
 
 # TODO manage pygame draw groups?
-class EntityGroupSystem(object):
+class EntityGroupSystem(System):
     def __init__(self):
         pass
 
@@ -238,7 +237,7 @@ class EntityGroupSystem(object):
             spriteGroup.remove(entity.DirtySprite)
         return entitydict, entities, spriteGroup
 
-class AlienGeneratorSystem(object):
+class AlienGeneratorSystem(System):
     def __init__(self):
         pass
 
@@ -251,7 +250,7 @@ class AlienGeneratorSystem(object):
             spriteGroup.add(alien.DirtySprite)
         return entities, spriteGroup
     
-class JetAnimationSystem(object):
+class JetAnimationSystem(System):
     def __init__(self):
         pass
     
@@ -309,7 +308,7 @@ class JetAnimationSystem(object):
 # Adding negative potential to enemies could help stop them from clustering around each other too much
 # Again, there are many interesting possibilities for the enemy types
 # It all depends on how well this does performance wise, which it should work perfectly fine for this game, even unoptimized
-class PotentialFieldSystem(object):
+class PotentialFieldSystem(System):
     def __init__(self):
         pass
 
@@ -321,7 +320,7 @@ class PotentialFieldSystem(object):
                     map.append({entity.id: [entity.DirtySprite.rect.center, entity.PotentialField.potential[i]]})
         return map
 
-class AISystem(object): # Control and process enemies here
+class AISystem(System): # Control and process enemies here
     def __init__(self):
         pass
 

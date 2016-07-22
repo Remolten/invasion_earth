@@ -23,7 +23,9 @@ from pygame.locals import *
 
 import sys, os
 
-from ecsgame import *
+from simpyl import simpyl
+from systems import *
+from components import *
 
 class Game(ecsGame):
     def __init__(self):

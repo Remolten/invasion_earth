@@ -17,7 +17,9 @@
 
 from pygame.sprite import DirtySprite
 
-class DirtySprite(DirtySprite):
+from simpyl import Component
+
+class DirtySprite(DirtySprite, Component):
     def __init__(self, img, rect):
         super(DirtySprite, self).__init__()
         self.id = 'DirtySprite'
@@ -32,14 +34,14 @@ class DirtySprite(DirtySprite):
         self.ratio = 1
         self.dirty = 1 # Hack to make it show initially
 
-class Speed(object):
+class Speed(Component):
     def __init__(self, maxspd, rotspd, thrust):
         self.id = 'Speed'
         self.maxspd = maxspd
         self.rotspd = rotspd
         self.thrust = thrust
 
-class PlayerControl(object):
+class PlayerControl(Component):
     def __init__(self):
         self.id = 'PlayerControl'
         self.up = False
@@ -47,12 +49,12 @@ class PlayerControl(object):
         self.lft = False
         self.rgt = False
 
-class Health(object):
+class Health(Component):
     def __init__(self, hlth):
         self.id = 'Health'
         self.hlth = hlth
 
-class Fire(object):
+class Fire(Component):
     def __init__(self):
         self.id = 'Fire'
         self.fire = False
@@ -60,21 +62,21 @@ class Fire(object):
         self.overt = 0
         self.overtm = 20 #To be tweaked
 
-class Flash(object):
+class Flash(Component):
     def __init__(self):
         self.id = 'Flash'
         self.flsh = False
         self.flshcd = False
         self.flshct = 0
 
-class PotentialField(object):
+class PotentialField(Component):
     def __init__(self, *potentials): # supply lists of potential # + circle radius, order matters
         self.id = 'PotentialField'
         self.potential = []
         for potential in potentials:
             self.potential.append(potential)
             
-class JetAnimation(object):
+class JetAnimation(Component):
     def __init__(self, pos, attachedEntityID, freq):
         self.id = 'JetAnimation'
         self.pos = pos # AKA is this the left or right trail, == to 0 or 1 respectively
@@ -83,22 +85,22 @@ class JetAnimation(object):
         self.freqct = 0
 
 # Placeholder classes for easier EGS grouping and/or identification
-class Movement(object):
+class Movement(Component):
     def __init__(self):
         self.id = 'Movement'
 
-class Events(object):
+class Events(Component):
     def __init__(self):
         self.id = 'Events'
 
-class AIControl(object):
+class AIControl(Component):
     def __init__(self):
         self.id = 'AIControl'
 
-class Alien(object):
+class Alien(Component):
     def __init__(self):
         self.id = 'Alien'
 
-class Laser(object):
+class Laser(Component):
     def __init__(self):
         self.id = 'Laser'

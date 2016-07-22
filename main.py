@@ -23,14 +23,10 @@ from pygame.locals import *
 
 import sys, os
 
-from entity import *
-from components import *
-from systems import *
+from ecsgame import *
 
-class Game(object):
+class Game(ecsGame):
     def __init__(self):
-        #self.ssx = 1280
-        #self.ssy = 690
         self.ssx = 800
         self.ssy = 600
         self.gameover = False
@@ -39,10 +35,14 @@ class Game(object):
         self.screenRect = self.screen.get_rect()
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
+        
+        # Below should be implemented but is not atm
         self.dt = 0
+        
         self.font = pygame.font.SysFont("monospace", 60)
 
         # TODO this probably needs to be changed but it will suffice for now
+        # Make a system/function for the loading and downscaling
         self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
@@ -62,6 +62,7 @@ class Game(object):
         self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
         self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
 
+        # TODO these must be changed to conform to the new game object
         self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem()
@@ -71,8 +72,9 @@ class Game(object):
         self.jetAnimationSystem = JetAnimationSystem()
 
     def start(self):
+        # TODO fix all of these with the new api
         self.entities = []
-        self.plr = Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = self.Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
         self.entities, self.spriteGroup = self.jetAnimationSystem.create(self.entities, self.plr.id, self.spriteGroup, self.jetimgs)
         self.entities.append(self.plr)

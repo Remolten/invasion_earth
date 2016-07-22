@@ -1,0 +1,12 @@
+clear
+rm -r dist
+cd ~/Desktop/invasion_earth/
+wine ~/.wine/drive_c/Python27/Scripts/pyinstaller.exe main.spec
+mv dist/main/pygame_sdl2.Rect.pyd dist/main/pygame_sdl2.rect.pyd
+rm -r build
+cp -R assets dist/main/assets
+cd dist
+mv main invasionearth
+zip -r -X invasionearth.zip invasionearth
+reset
+echo 'Build success'

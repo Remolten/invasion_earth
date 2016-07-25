@@ -16,31 +16,38 @@
 # 
 
 # !!! Note: This class should only be invoked by the simpyl metaclass
-# Make a proper Entity object which only stores an id and a list of component strings
+# Make a proper Entity object which only stores an id and a list of references to component objects
 class _Entity(object):
     def __init__(self, _id, *components):
         # _id should a unique value given by the simpyl metaclass
         self.id = _id
         
         # Create a list of components this entity posseses
-        self.cs = [c for c in components]
+        for component in components:
+            self.cs.append(component)
+            # Also allows direct access to components from an entity object
+            self.__dict__[component.id] = component
         
-    # Add a variable number of components
+    # Add a variable number of component objects
     def add(self, *components):
         self.cs.extend(components)
         
-    # Delete a variable number of components
-    def rm(self, *components):
-        if self.has(*components):
+    # Delete a variable number of components by string
+    def rm(self, *componentstrs):
+        if self.has(*componentstrs):
             self.cs.remove(component)
             return True
         return False
             
-    # Check if the entity has a variable number of components
-    def has(self, *components):
-        for component in components:
-            if not component in self.cs:
+    # Check if the entity has a variable number of components by string
+    def has(self, *componentstrs):
+        for componentstr in componentstrs:
+            for component in self.cs:
+                if component.id == componentstr:
+                    break   
+            else:
                 return False
+            
         return True
 
 # The only requirement of a system class is to implement an id
@@ -88,22 +95,17 @@ class simpyl(object):
         _id = newID()
 
         # Add components to database and get all the component ids
+        # _cids is not needed under the new setup
         _cids = self.addComponents(entityID = _id, *components)
 
         # Create an actual Entity object
-        entity = _Entity(_id, *_cids)
+        entity = _Entity(_id, *components)
         
         # Add it to the list of entities
         self.ents.add(entity)
         
         # Return the entity object to be assigned
         return entity
-    
-    # Create a new system object and return it to the caller
-    # The ID supplied should be a human readable descriptor and does not need to be unique
-    def System(self, systemID):
-        system = _System()
-        return system
     
     # Systems should be declared as functions in the child of this class
     # However this allows for functions to be modularized and imported from a different file
@@ -156,6 +158,41 @@ class simpyl(object):
             else:
                 # Couldn't find the component in the database
                 return "Component not found in database or owner entity. Unable to remove."
+            
+    # Return a dict of all components of the specified componentTypes
+    # If there is more than one argument, it only returns the components of entities that possess all of the types given
+    def getComponents(self, *componentTypes):
+#        # Get a dict of what the components should be and temporarily store them here
+#        _has = {}
+#        
+#        # Return this dict as the actual slice of the main dict
+#        _csmod = {}
+#        
+#        # Find entities that should have the required components
+#        for entity in self.ents:
+#            if entity.has(*componentTypes):
+#                _has[componentType] = entity.id
+#        
+#        # Retrieve the actual relevant components
+#        for component, entity in enumerate(self.cs):
+#            for componentID, entity2 in enumerate(_has):
+#                if component.id = componentID and entity == entity2:
+#                    _csmod[component] = entity
+#            
+#        return _csmod
+            
+        return dict(filter(lambda x: x[0].id in componentTypes, self.cs.items()))
+    
+    # Return all entities that contain the specified componentTypes
+    def getEntitiesByComponent(self, *componentTypes):
+        # Container to return the components
+        _cs = []
+        
+        for entity in self.ents:
+            if entity.has(*componentTypes):
+                _cs.append(entity)
+                
+        return cs
             
     # Run this each loop iteration
     # Runs the process function of all systems

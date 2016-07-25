@@ -38,8 +38,12 @@ class Game(ecsGame):
         pygame.display.set_caption('Invasion Earth')
         self.clock = pygame.time.Clock()
         
+        # This holds a list of events to be accessed by systems
+        self.events = []
+        
         # Below should be implemented but is not atm
         self.dt = 0
+        # FIXME ABOVE
         
         self.font = pygame.font.SysFont("monospace", 60)
 
@@ -64,25 +68,27 @@ class Game(ecsGame):
         self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
         self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
 
-        # TODO these must be changed to conform to the new game object
-        self.entityGroupSystem = EntityGroupSystem()
+        # Initialize all of the necessary systems
+        #self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem()
         self.fireSystem = FireSystem()
         self.drawSystem = DrawSystem()
         self.alienGeneratorSystem = AlienGeneratorSystem()
         self.jetAnimationSystem = JetAnimationSystem()
+        
+        # Add all of the systems to the main database
+        self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem, self.jetAnimationSystem)
 
     def start(self):
         # TODO fix all of these with the new api
         self.entities = []
-        self.plr = self.Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = self.Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player1(), PlayerControl(), Fire(), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
+        # CHANGE API OF THIS BELOW
         self.entities, self.spriteGroup = self.jetAnimationSystem.create(self.entities, self.plr.id, self.spriteGroup, self.jetimgs)
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)
-        #aliens = OrderedUpdatesModded()
-        #powerups = OrderedUpdatesModded()
 
     def run(self):
         self.start()
@@ -90,16 +96,17 @@ class Game(ecsGame):
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    #pygame.quit() #seg faults for some reason
                     sys.exit()
 
                 if event.type == KEYUP:
                     if event.key == K_ESCAPE:
-                        #pygame.quit()
                         sys.exit()
 
+                # Add each event to the events list to be accessed by the EventSystem
+                self.events.append(event)
+                
                 #call the egs outside of loop first to optimize
-                self.eventSystem.update(event, self.entityGroupSystem.get(self.entitiesDict, 'Events'))
+                #self.eventSystem.update(event, self.entityGroupSystem.get(self.entitiesDict, 'Events'))
 
             self.entities, self.spriteGroup = self.alienGeneratorSystem.gen(self.entities, self.alimg, self.screenRect, self.spriteGroup)
             self.entitiesDict = self.entityGroupSystem.sort(self.entitiesDict, self.entities)
@@ -109,6 +116,7 @@ class Game(ecsGame):
             self.jetAnimationSystem.update(self.entities)
             rlst = self.drawSystem.draw(self.screen, self.screenRect, self.bg, self.spriteGroup)
 
+            # FIXME Code below here is dirty stuff that needs to be properly done in a system
             for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):
                 if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
                     self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien)
@@ -124,6 +132,9 @@ class Game(ecsGame):
                 if ct == 120:
                     ct = 0
                     self.gameover = False
+                    
+            # Flush the events list
+            self.events = []
 
             pygame.display.update(rlst)
             self.dt = self.clock.tick(60)

@@ -20,6 +20,8 @@ from pygame.locals import *
 
 from simpyl import System
 
+from components import *
+
 import math, random
 
 # Utility function which when used via yield will pause for x frames
@@ -29,42 +31,43 @@ import math, random
 #        fr -= 1
 #        yield fr
 
+# Processes events and changes the relevant values of certain components
 class EventSystem(System):
     def __init__(self):
         pass
 
-    def update(self, event, entities):
-        for entity in entities:
-            if entity.has('PlayerControl', 'Fire'):
-                if event.type == KEYDOWN:
-                    if event.key == K_UP or event.key == ord('w'):
-                        entity.PlayerControl.up = True
-                        entity.PlayerControl.dwn = False
-                    if event.key == K_DOWN or event.key == ord('s'):
-                        entity.PlayerControl.dwn = True
-                        entity.PlayerControl.up = False
-                    if event.key == K_LEFT or event.key == ord('a'):
-                        entity.PlayerControl.lft = True
-                        entity.PlayerControl.rgt = False
-                    if event.key == K_RIGHT or event.key == ord('d'):
-                        entity.PlayerControl.rgt = True
-                        entity.PlayerControl.lft = False
-                    if event.key == K_SPACE and entity.Fire != None:
-                        entity.Fire.fire = True
+    def update(self):
+        for playerControlComponent, playerControlEntity in enumerate(self.game.getComponents('PlayerControl')):
+            for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
+                for event in self.events:
+                    if event.type == KEYDOWN:
+                        if event.key == K_UP or event.key == ord('w'):
+                            playerControlComponent.up = True
+                            playerControlComponent.dwn = False
+                        if event.key == K_DOWN or event.key == ord('s'):
+                            playerControlComponent.dwn = True
+                            playerControlComponent.up = False
+                        if event.key == K_LEFT or event.key == ord('a'):
+                            playerControlComponent.lft = True
+                            playerControlComponent.rgt = False
+                        if event.key == K_RIGHT or event.key == ord('d'):
+                            playerControlComponent.rgt = True
+                            playerControlComponent.lft = False
+                        if event.key == K_SPACE:
+                            fireComponent.fire = True
 
-                if event.type == KEYUP:
-                    if event.key == K_UP or event.key == ord('w'):
-                        entity.PlayerControl.up = False
-                    if event.key == K_DOWN or event.key == ord('s'):
-                        entity.PlayerControl.dwn = False
-                    if event.key == K_LEFT or event.key == ord('a'):
-                        entity.PlayerControl.lft = False
-                    if event.key == K_RIGHT or event.key == ord('d'):
-                        entity.PlayerControl.rgt = False
-                    if event.key == K_SPACE and entity.Fire != None:
-                        entity.Fire.fire = False
+                    if event.type == KEYUP:
+                        if event.key == K_UP or event.key == ord('w'):
+                            playerControlComponent.up = False
+                        if event.key == K_DOWN or event.key == ord('s'):
+                            playerControlComponent.dwn = False
+                        if event.key == K_LEFT or event.key == ord('a'):
+                            playerControlComponent.lft = False
+                        if event.key == K_RIGHT or event.key == ord('d'):
+                            playerControlComponent.rgt = False
+                        if event.key == K_SPACE:
+                            fireComponent.fire = False
 
-# Must separate the determination of dx dy etc. from actually editing the rect
 class MovementSystem(System):
     def __init__(self):
         pass
@@ -101,7 +104,8 @@ class MovementSystem(System):
                             entity.DirtySprite.dy *= 0.97 #if entity.DirtySprite.dy > 0.3 else 0.9
                         elif entity.DirtySprite.dy < 0:
                             entity.DirtySprite.dy *= 0.9
-                        # you could make a case for letting the ship drift when it gets to low speeds
+                        # You could make a case for letting the ship drift when it gets to low speeds
+                        # But this just causes an instant drop off when the speed gets low
                         if abs(entity.DirtySprite.dx) < 0.2:
                             entity.DirtySprite.dx = 0
                         if abs(entity.DirtySprite.dy) < 0.2:
@@ -157,29 +161,32 @@ class FireSystem(System):
     def __init__(self):
         pass
 
-    def update(self, entities, spriteGroup, lsrimg, plr):
-        for entity in entities:
-            if entity.has('Fire'):
-                if entity.Fire.fire and not entity.Fire.over:
-                    entity.Fire.over = True
-                    # TODO fix inaccurate laser placement
-                    laser = Entity('laser', DirtySprite(lsrimg, lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
-                    laser.DirtySprite.angle = plr.DirtySprite.angle
-                    laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
-                    laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
-                    laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
-                    entities.append(laser)
-                    spriteGroup.add(laser.DirtySprite)
-                elif entity.Fire.over:
-                    entity.Fire.overt += 1
+    def update(self):
+        # Get the plr entity which has references to its components
+        plr = self.game.getEntitiesByComponent('Player1')
+        
+        for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
+            if fireComponent.fire and not fireComponent.over:
+                fireComponent.over = True
+                # TODO fix inaccurate laser placement
+                # Cause: Not sure exactly
+                laser = self.Entity('laser', DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
+                laser.DirtySprite.angle = plr.DirtySprite.angle
+                laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
+                laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
+                laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
+                
+                # TODO this should be relegated to some sort of internal system
+                self.spriteGroup.add(laser.DirtySprite)
+            elif fireComponent.over:
+                fireComponent.overt += 1
 
-                if entity.Fire.overt == entity.Fire.overtm:
-                    entity.Fire.overt = 0
-                    entity.Fire.over = False
-
-        return entities, spriteGroup
+            if fireComponent.overt == fireComponent.overtm:
+                fireComponent.overt = 0
+                fireComponent.over = False
 
 # This must be revamped to take entity lists, not sprite groups
+# FIXME Above definitely still applies
 class DrawSystem(System):
     def __init__(self):
         pass
@@ -205,44 +212,46 @@ class DrawSystem(System):
         return rlst
 
 # TODO manage pygame draw groups?
-class EntityGroupSystem(System):
-    def __init__(self):
-        pass
-
-    def isort(self, entities):
-        entitydict = {}
-        return self.sort(entitydict, entities)
-
-    def sort(self, entitydict, entities): # might not want to pass all entities each frame
-        for entity in entities:
-            for component in entity.cs: # inefficient but functional
-                if component not in entitydict.keys():
-                    entitydict[component] = []
-                elif entity not in entitydict[component]:
-                    entitydict[component].append(entity)
-        return entitydict
-
-    def get(self, entitydict, *types):
-        entities = []
-        for type in types:
-            if type in entitydict.keys():
-                entities.extend(entitydict[type])
-        return entities
-
-    def destroy(self, entitydict, entities, spriteGroup, *entityinstances):
-        for entity in entityinstances:
-            for component in entity.cs:
-                entitydict[component].remove(entity)
-            entities.remove(entity)
-            spriteGroup.remove(entity.DirtySprite)
-        return entitydict, entities, spriteGroup
+# This is probably not needed anymore now that we use the simpyl framework
+#class EntityGroupSystem(System):
+#    def __init__(self):
+#        pass
+#
+#    def isort(self, entities):
+#        entitydict = {}
+#        return self.sort(entitydict, entities)
+#
+#    def sort(self, entitydict, entities): # might not want to pass all entities each frame
+#        for entity in entities:
+#            for component in entity.cs: # inefficient but functional
+#                if component not in entitydict.keys():
+#                    entitydict[component] = []
+#                elif entity not in entitydict[component]:
+#                    entitydict[component].append(entity)
+#        return entitydict
+#
+#    def get(self, entitydict, *types):
+#        entities = []
+#        for type in types:
+#            if type in entitydict.keys():
+#                entities.extend(entitydict[type])
+#        return entities
+#
+#    def destroy(self, entitydict, entities, spriteGroup, *entityinstances):
+#        for entity in entityinstances:
+#            for component in entity.cs:
+#                entitydict[component].remove(entity)
+#            entities.remove(entity)
+#            spriteGroup.remove(entity.DirtySprite)
+#        return entitydict, entities, spriteGroup
 
 class AlienGeneratorSystem(System):
     def __init__(self):
         pass
 
     def gen(self, entities, alimg, screenrect, spriteGroup):
-        if random.randint(0, 120) == 11: # determines rate of gen
+        # FIXME Rate of generation needs to be accessible outside of the function (Note: easy)
+        if random.randint(0, 120) == 11:
             alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)

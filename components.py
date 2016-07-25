@@ -104,3 +104,7 @@ class Alien(Component):
 class Laser(Component):
     def __init__(self):
         self.id = 'Laser'
+        
+class Player1(Component):
+    def __init__(self):
+        self.id = 'Player1'

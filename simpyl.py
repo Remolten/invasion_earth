@@ -126,6 +126,12 @@ class simpyl(object):
             
     # Import all components and add them to the component database
     # Can optionally provide this function with the entity object or just its ID
+    
+    #
+    # TODO IMPORTANTstore the entity object instead of the id in the self.cs dict
+    #
+    '''Change this people now.'''
+    
     def addComponent(self, entity = None, entityID = None, *components):
         _cids = []
         
@@ -148,7 +154,7 @@ class simpyl(object):
     def rmComponent(self, *components):
         for component in components:
             # Ensures each argument is a component
-            assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class.
+            assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class."
             
             # Checks if the component exists and self.cs and checks and removes from the entity as well
             if component in self.cs and list(filter(lambda x: x.id == self.cs[component.id], self.ents))[0].rm(component.id):

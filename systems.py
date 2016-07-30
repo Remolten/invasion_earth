@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
+import pygame_sdl2
+pygame_sdl2.import_as_pygame()
+
 import pygame
 from pygame.locals import *
 
@@ -157,19 +160,19 @@ class MovementSystem(System):
             # Keep sprite inside the screen
             entity.DirtySprite.rect.clamp_ip(screenrect)
 
+# A system which creates lasers for all fire objects
 class FireSystem(System):
     def __init__(self):
         pass
 
-    def update(self):
-        # Get the plr entity which has references to its components
-        plr = self.game.getEntitiesByComponent('Player1')
-        
+    def update(self): 
+        # TODO change all plr references to fireEntity
         for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
             if fireComponent.fire and not fireComponent.over:
                 fireComponent.over = True
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
+                # TODO add optional kwargs for these DirtySprite variable settings in the component
                 laser = self.Entity('laser', DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
                 laser.DirtySprite.angle = plr.DirtySprite.angle
                 laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
@@ -187,6 +190,7 @@ class FireSystem(System):
 
 # This must be revamped to take entity lists, not sprite groups
 # FIXME Above definitely still applies
+# TODO port this
 class DrawSystem(System):
     def __init__(self):
         pass
@@ -245,6 +249,7 @@ class DrawSystem(System):
 #            spriteGroup.remove(entity.DirtySprite)
 #        return entitydict, entities, spriteGroup
 
+# TODO port this
 class AlienGeneratorSystem(System):
     def __init__(self):
         pass
@@ -258,7 +263,8 @@ class AlienGeneratorSystem(System):
             entities.append(alien)
             spriteGroup.add(alien.DirtySprite)
         return entities, spriteGroup
-    
+
+# TODO port this thing
 class JetAnimationSystem(System):
     def __init__(self):
         pass
@@ -317,30 +323,33 @@ class JetAnimationSystem(System):
 # Adding negative potential to enemies could help stop them from clustering around each other too much
 # Again, there are many interesting possibilities for the enemy types
 # It all depends on how well this does performance wise, which it should work perfectly fine for this game, even unoptimized
-class PotentialFieldSystem(System):
-    def __init__(self):
-        pass
 
-    def map(self, entities):
-        map = []
-        for entity in entities:
-            if entity.has('PotentialField', 'DirtySprite'):
-                for i in range(len(entity.PotentialField.potential)):
-                    map.append({entity.id: [entity.DirtySprite.rect.center, entity.PotentialField.potential[i]]})
-        return map
-
-class AISystem(System): # Control and process enemies here
-    def __init__(self):
-        pass
-
-    def process(self, map, entities):
-        player = []
-        for dict in map:
-            if 'player' in dict:
-                player.append(dict)
-        for entity in entities:
-            if entity.has('PotentialField', 'DirtySprite'):
-                pass
-                #for p in map:
-                    #pass # implement this later, for now just revolve around the player
-                # path = (entity.DirtySprite.rect.centerx -
+# TODO Port these to the new simpyl framework
+# Not necessary until they can actually begin being used
+#class PotentialFieldSystem(System):
+#    def __init__(self):
+#        pass
+#
+#    def map(self, entities):
+#        map = []
+#        for entity in entities:
+#            if entity.has('PotentialField', 'DirtySprite'):
+#                for i in range(len(entity.PotentialField.potential)):
+#                    map.append({entity.id: [entity.DirtySprite.rect.center, entity.PotentialField.potential[i]]})
+#        return map
+#
+#class AISystem(System): # Control and process enemies here
+#    def __init__(self):
+#        pass
+#
+#    def process(self, map, entities):
+#        player = []
+#        for dict in map:
+#            if 'player' in dict:
+#                player.append(dict)
+#        for entity in entities:
+#            if entity.has('PotentialField', 'DirtySprite'):
+#                pass
+#                #for p in map:
+#                    #pass # implement this later, for now just revolve around the player
+#                # path = (entity.DirtySprite.rect.centerx -

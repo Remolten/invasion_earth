@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
+import pygame_sdl2
+pygame_sdl2.import_as_pygame()
+
 from pygame.sprite import DirtySprite
 
 from simpyl import Component

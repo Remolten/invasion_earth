@@ -48,7 +48,7 @@ class _Entity(object):
         for componentstr in componentstrs:
             for component in self.cs:
                 if component.id == componentstr:
-                    break   
+                    break
             else:
                 return False
             
@@ -81,7 +81,7 @@ class simpyl(object):
         
         # Create a container for all of the components and their respective entity ID's
         # This should be sent to the systems for parsing
-        # This is the format: {component: ownerEntityID}
+        # This is the format: {componentTypeStr: {component: owningEntity}}
         self.cs = {}
         
         # Create a container for all of the entities, a set in this case
@@ -104,8 +104,11 @@ class simpyl(object):
         # Create an actual Entity object
         entity = _Entity(_id, *components)
 
-        # Add components to database and get all the component ids
+        # Add components to database
         self.addComponent(entity, *components)
+        
+        # Add component references to the entity itself
+        entity.add(*components)
         
         # Add it to the list of entities
         self.ents.add(entity)
@@ -123,7 +126,7 @@ class simpyl(object):
             self.sys.add(system.id)
             
             # Ensures that the system has not already been added
-            assert system.id not in self.__dict__, "Invalid system name. Either received a duplicate system name or the system name clased with an internal python method. Rename the system.id to something else to fix."
+            assert system.id not in self.__dict__, "Invalid system name. Either received a duplicate system name or the system name clashed with an internal python method. Rename the system.id to something else to fix."
             # Systems can be accessed by self.system in the child of this class if needed
             self.__dict__[system.id] = system
             
@@ -137,10 +140,18 @@ class simpyl(object):
             # Make sure each object received is a component
             assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class."
             
+#            # See if there is a spot for the component already
+#            for _component in self.cs.keys():
+#                if _component.id == component.id:
+#                    break
+#            else:
+#                #self.cs[component]
+            
             # Add the component to the database if it is the correct type
-            self.cs[component] = entity
+            self.cs[component.id] = {component: entity}
     
     # Removes a variable number of components from the database
+    # FUTURE Could resort self.cs just in case the removed component was the last of its type
     def rmComponent(self, *components):
         for component in components:
             # Ensures each argument is a component
@@ -155,31 +166,18 @@ class simpyl(object):
                 # Couldn't find the component in the database
                 return "Component not found in database or owner entity. Unable to remove."
             
-    # Return a dict of all components of the specified componentTypes
-    # If there is more than one argument, it only returns the components of entities that possess all of the types given
+    # Return a dict of all components of the specified componentType
     # TODO Organize the components into sub groups containing only their type
-    def getComponents(self, componentType):
-#        # Get a dict of what the components should be and temporarily store them here
-#        _has = {}
-#        
-#        # Return this dict as the actual slice of the main dict
-#        _csmod = {}
-#        
-#        # Find entities that should have the required components
-#        for entity in self.ents:
-#            if entity.has(*componentTypes):
-#                _has[componentType] = entity.id
-#        
-#        # Retrieve the actual relevant components
-#        for component, entity in enumerate(self.cs):
-#            for componentID, entity2 in enumerate(_has):
-#                if component.id = componentID and entity == entity2:
-#                    _csmod[component] = entity
-#            
-#        return _csmod
-            
+    def getComponents(self, componentType):      
         # Returns a dict of all entities with the specified component type
-        return dict(filter(lambda x: x[0].id == componentType, self.cs.items()))
+        # return dict(filter(lambda x: x[0].id == componentType, self.cs.items()))
+        
+        # Get all components of a certain type in the form {componentType: {component: owningEntity}}
+        cs = dict(filter(lambda x: x[0] == componentType, self.cs.items()))
+        
+        # Only return the internal dict with the actual components
+        return list(cs.values())[0]
+        # Above works as long as we don't allow user to get multiple componentTypes at once
     
     # Return all entities that contain the specified componentTypes
     def getEntitiesByComponents(self, *componentTypes):

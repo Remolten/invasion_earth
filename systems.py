@@ -78,7 +78,6 @@ class MovementSystem(System):
 
     def update(self):
         for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed', 'PlayerControl'):
-            print('We got some matches now')
             # Note this is dirty but necessary due to the flawed initial design of this system
             # An ECS should only access one component type per system
             for component in entity.cs:
@@ -137,9 +136,9 @@ class MovementSystem(System):
                 alienEntity.DirtySprite.dy += alienEntity.Speed.maxspd * yslope * alienEntity.Speed.thrust
 
         for laserEntity in self.game.getEntitiesByComponents('Laser'):
-            if laserEntity.DirtySprite.rect.x <= 0 or laserEntity.DirtySprite.rect.x >= self.screenrect.width - laserEntity.DirtySprite.rect.width:
+            if laserEntity.DirtySprite.rect.x <= 0 or laserEntity.DirtySprite.rect.x >= self.game.screenrect.width - laserEntity.DirtySprite.rect.width:
                 laserEntity.DirtySprite.dx *= -1
-            if laserEntity.DirtySprite.rect.y <= 0 or laserEntity.DirtySprite.rect.y >= self.screenrect.height - laserEntity.DirtySprite.rect.height:
+            if laserEntity.DirtySprite.rect.y <= 0 or laserEntity.DirtySprite.rect.y >= self.game.screenrect.height - laserEntity.DirtySprite.rect.height:
                 laserEntity.DirtySprite.dy *= -1
 
             if laserEntity.DirtySprite.dx != 0:
@@ -180,7 +179,7 @@ class MovementSystem(System):
             dsComponent.rect.y += dsComponent.dy
 
             # Keep sprite inside the screen
-            dsComponent.rect.clamp_ip(self.screenrect)
+            dsComponent.rect.clamp_ip(self.game.screenrect)
 
 # A system which creates lasers for all entities with fire objects
 # TODO This system and the others below should avoid accessing self variables whenever possible

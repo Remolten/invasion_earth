@@ -32,46 +32,39 @@ class Game(simpyl):
         # Call the init method of the simpyl parent class
         super().__init__()
         
+        # Screen resolution
         self.ssx = 800
         self.ssy = 600
+        
+        # Execute game over actions if True
         self.gameover = False
+        
+        # Initialize the pygame engine
         pygame.init()
+        
+        # Initialize the screen
         self.screen = pygame.display.set_mode((self.ssx, self.ssy))
+        
+        # Create a rect of the screen for convenience
         self.screenrect = self.screen.get_rect()
+        
+        # Set window caption text
         pygame.display.set_caption('Invasion Earth')
+        
+        # Create a clock for relegating frame rate
         self.clock = pygame.time.Clock()
         
         # This holds a list of events to be accessed by systems
         self.events = []
         
-        # Below should be implemented but is not atm
+        # TODO Implement dt into movement to prevent framerate determining movespeed
         self.dt = 0
-        # FIXME Implement dt into movement to prevent framerate determining movespeed
         
+        # Load the main font, which will likely change for release
+        # Maybe add a font system as well if that's needed later
         self.font = pygame.font.SysFont("monospace", 60)
 
-        # TODO Make a system/function for the loading and downscaling of images etc
-        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
-        self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
-        self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
-        self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
-        self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
-        self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
-        self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
-        
-        self.jetimgs = [self.jet1, self.jet4, self.jet5]
-
-        # Scale down by factor of 3
-        downscale = 3
-        self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
-        self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
-        self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
-        self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
-        self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
-        self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
-
         # Initialize all of the necessary systems
-        #self.entityGroupSystem = EntityGroupSystem()
         self.eventSystem = EventSystem()
         self.movementSystem = MovementSystem()
         self.fireSystem = FireSystem()
@@ -81,16 +74,39 @@ class Game(simpyl):
         
         # Add all of the systems to the main database
         self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem)
+        
+        # Load all assets
+        # TODO call this function with arguments for each image needed and add image + downscale args
+        # This will be easily doable as soon as all assets are moved into the same location
+        self.load()
+        
+    def load(self):
+        # Load all images
+        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
+        self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
+        self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
+        self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
+        self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
+        self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
+        self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
+        
+        # This may not be necessary with the new refactoring
+        self.jetimgs = [self.jet1, self.jet4, self.jet5]
+
+        # Scale down by factor of 3 for most things
+        downscale = 3
+        self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
+        self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
+        self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
+        self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
+        self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
+        self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
 
     def start(self):
-        # TODO fix all of these with the new api
-        #self.entities = []
+        # Hopefully should be able to call super().__init__() to reset the game
+        # FUTURE relegate player creation + sprite groups to a system
         self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player1(), PlayerControl(), Fire(), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
-        # TODO CHANGE API OF THIS BELOW
-        #self.entities, self.spriteGroup = self.jetAnimationSystem.create(self.entities, self.plr.id, self.spriteGroup, self.jetimgs)
-        #self.entities.append(self.plr)
-        #self.entitiesDict = self.entityGroupSystem.isort(self.entities)
 
     def run(self):
         self.start()
@@ -106,17 +122,11 @@ class Game(simpyl):
 
                 # Add each event to the events list to be accessed by the EventSystem
                 self.events.append(event)
-                
-                
-            self.eventSystem.update()
+             
+            # Runs the process method of all systems that have been added
+            self.process()   
 
-            self.alienGeneratorSystem.gen()
-            self.fireSystem.update()
-            self.movementSystem.update()
-            #self.jetAnimationSystem.update(self.entities)
-            self.drawSystem.draw()
-
-            # FIXME Code below here is dirty stuff that needs to be properly done in a CollisionSystem
+            # FIXME Code below here is dirty stuff that needs to be properly done in a CollisionSystem + ported
             # This code is also broken with the new framework anyways
 #            for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):
 #                if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):

@@ -66,7 +66,7 @@ class System(object):
         raise NotImplementedError
     
 # The only requirement of a component class is to implement an id
-# FIXME Component id must be its name
+# TODO Component id should be set by parent not child
 # Obviously it should be changed from None to an appropriate unique identifier for what it does eg Sprite
 class Component(object):
     # Ensure there is an initial ID to prevent errors

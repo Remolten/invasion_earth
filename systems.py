@@ -24,19 +24,12 @@ from components import *
 
 import math, random
 
-# Utility function which when used via yield will pause for x frames
-#def wait(frames):
-#    fr = frames
-#    while fr > 0:
-#        fr -= 1
-#        yield fr
-
 # Processes events and changes the relevant values of certain components
 class EventSystem(System):
     def __init__(self):
-        self.id = "EventSystem"
+        self.id = 'EventSystem'
 
-    def update(self):
+    def process(self):
         for playerControlComponent, playerControlEntity in self.game.getComponents('PlayerControl').items():
             for fireComponent, fireEntity in self.game.getComponents('Fire').items():
                 for event in self.game.events:
@@ -74,11 +67,11 @@ class EventSystem(System):
 # NOTE For future reference, each system must only deal with one single component, not multiple
 class MovementSystem(System):
     def __init__(self):
-        self.id = "MovementSystem"
+        self.id = 'MovementSystem'
 
-    def update(self):
+    def process(self):
         for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed', 'PlayerControl'):
-            # Note this is dirty but necessary due to the flawed initial design of this system
+            # NOTE this is dirty but necessary due to the flawed initial design of this system
             # An ECS should only access one component type per system
             for component in entity.cs:
                 if component.id == 'DirtySprite':
@@ -117,7 +110,7 @@ class MovementSystem(System):
                 elif dsComponent.dy < 0:
                     dsComponent.dy *= 0.9
                 # You could make a case for letting the ship drift when it gets to low speeds
-                # But this just causes an instant drop off when the speed gets low
+                # But this just causes an instant drop off when the speed gets too low
                 if abs(dsComponent.dx) < 0.2:
                     dsComponent.dx = 0
                 if abs(dsComponent.dy) < 0.2:
@@ -126,6 +119,7 @@ class MovementSystem(System):
         # FUTURE will be broken if we added multiplayer
         for alienEntity in self.game.getEntitiesByComponents('Alien'):
             # NOTE Movement will be wonky if there exists more then one Player1 component
+            # Aliens should instead be attached to 1 player object upon creation
             for p1Entity in self.game.getEntitiesByComponents('Player1'):
                 # Here we set the aliens to track the player
                 # All we have to do is set the angle to always face the player
@@ -180,14 +174,23 @@ class MovementSystem(System):
 
             # Keep sprite inside the screen
             dsComponent.rect.clamp_ip(self.game.screenrect)
+            
+# A system which takes all collide components and checks for collisions
+# In a perfect world this would only check for collisions and not determine what happens when certain things collide
+class CollisionSystem(System):
+    def __init__(self):
+        self.id = 'CollisionSystem'
+        
+    def process(self):
+        pass
 
 # A system which creates lasers for all entities with fire objects
 # TODO This system and the others below should avoid accessing self variables whenever possible
 class FireSystem(System):
     def __init__(self):
-        self.id = "FireSystem"
+        self.id = 'FireSystem'
 
-    def update(self): 
+    def process(self): 
         for fireComponent, fireEntity in self.game.getComponents('Fire').items():
             if fireComponent.fire and not fireComponent.over:
                 fireComponent.over = True
@@ -210,14 +213,12 @@ class FireSystem(System):
                 fireComponent.overt = 0
                 fireComponent.over = False
 
-# This must be revamped to take entity lists, not sprite groups
-# FIXME Above definitely still applies
-# TODO port this
+# TODO DrawSystem should be revamped to take entity lists, not sprite groups
 class DrawSystem(System):
     def __init__(self):
-        self.id = "DrawSystem"
+        self.id = 'DrawSystem'
 
-    def draw(self):
+    def process(self):
         self.game.screen.fill((0, 0, 0))
         self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_width(), self.game.bg.get_height()))
         self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), 0, self.game.bg.get_width(), self.game.bg.get_height()))
@@ -232,51 +233,17 @@ class DrawSystem(System):
         if rcts != None:
             for rct in rcts:
                 self.game.rlst.append(rct)
-        #We are dealing with a GroupSingle
+        #We are dealing with a GroupSingle: not using right now
 #        else:
 #            self.game.rlst.append(self.spriteGroup.sprite.rect)
-
-# TODO manage pygame draw groups?
-# This is probably not needed anymore now that we use the simpyl framework
-#class EntityGroupSystem(System):
-#    def __init__(self):
-#        pass
-#
-#    def isort(self, entities):
-#        entitydict = {}
-#        return self.sort(entitydict, entities)
-#
-#    def sort(self, entitydict, entities): # might not want to pass all entities each frame
-#        for entity in entities:
-#            for component in entity.cs: # inefficient but functional
-#                if component not in entitydict.keys():
-#                    entitydict[component] = []
-#                elif entity not in entitydict[component]:
-#                    entitydict[component].append(entity)
-#        return entitydict
-#
-#    def get(self, entitydict, *types):
-#        entities = []
-#        for type in types:
-#            if type in entitydict.keys():
-#                entities.extend(entitydict[type])
-#        return entities
-#
-#    def destroy(self, entitydict, entities, spriteGroup, *entityinstances):
-#        for entity in entityinstances:
-#            for component in entity.cs:
-#                entitydict[component].remove(entity)
-#            entities.remove(entity)
-#            spriteGroup.remove(entity.DirtySprite)
-#        return entitydict, entities, spriteGroup
 
 # TODO Change the call functions of this and all other systems to be named process
 # That way they can be called with one call to the simpyl.process method
 class AlienGeneratorSystem(System):
     def __init__(self):
-        self.id = "AlienGeneratorSystem"
+        self.id = 'AlienGeneratorSystem'
 
-    def gen(self):
+    def process(self):
         # FIXME Rate of generation needs to be accessible outside of the function
         if random.randint(0, 120) == 11:
             alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
@@ -288,7 +255,7 @@ class AlienGeneratorSystem(System):
 # TODO port this JET ANIMATION AWESOME CLASS
 #class JetAnimationSystem(System):
 #    def __init__(self):
-#        self.id = "JetAnimationSystem"
+#        self.id = 'JetAnimationSystem'
 #    
 #    def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
 #        reqimg = jetimgs[0]
@@ -345,7 +312,6 @@ class AlienGeneratorSystem(System):
 # Again, there are many interesting possibilities for the enemy types
 # It all depends on how well this does performance wise, which it should work perfectly fine for this game, even unoptimized
 
-# TODO Port these to the new simpyl framework
 # Not necessary until they can actually begin being used
 #class PotentialFieldSystem(System):
 #    def __init__(self):

@@ -193,14 +193,15 @@ class FireSystem(System):
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
                 # TODO add optional kwargs for these DirtySprite variable settings in the component
-                laser = self.Entity('laser', DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
+                laser = self.Entity(DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
                 laser.DirtySprite.angle = fireEntity.DirtySprite.angle
                 laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
                 laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
                 laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
                 
-                # TODO this should be relegated to some sort of internal system
+                # TODO this should be relegated to some sort of sprite group internal system
                 self.spriteGroup.add(laser.DirtySprite)
+                
             elif fireComponent.over:
                 fireComponent.overt += 1
 
@@ -215,25 +216,24 @@ class DrawSystem(System):
     def __init__(self):
         self.id = "DrawSystem"
 
-    def draw(self, screen, screenrect, bg, *spritegroups):
-        screen.fill((0, 0, 0))
-        screen.blit(bg, pygame.Rect(0, 0, bg.get_width(), bg.get_height()))
-        screen.blit(bg, pygame.Rect(bg.get_width(), 0, bg.get_width(), bg.get_height()))
-        screen.blit(bg, pygame.Rect(0, bg.get_height(), bg.get_width(), bg.get_height()))
-        screen.blit(bg, pygame.Rect(bg.get_width(), bg.get_height(), bg.get_width(), bg.get_height()))
-        rlst = [screenrect]
-        for spritegroup in spritegroups:
-            #group.clear(screen, bg) Needs to be the size of the screen
-            rcts = spritegroup.draw(screen)
-            #We are dealing with a LayeredDirty group
-            #FIXME LayeredDirty groups are broken???
-            if rcts != None:
-                for rct in rcts:
-                    rlst.append(rct)
-            #We are dealing with a GroupSingle
-            else:
-                rlst.append(spritegroup.sprite.rect)
-        return rlst
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.bg, pygame.Rect(0, 0, self.bg.get_width(), self.bg.get_height()))
+        self.screen.blit(self.bg, pygame.Rect(self.bg.get_width(), 0, self.bg.get_width(), self.bg.get_height()))
+        self.screen.blit(self.bg, pygame.Rect(0, self.bg.get_height(), self.bg.get_width(), self.bg.get_height()))
+        self.screen.blit(self.bg, pygame.Rect(self.bg.get_width(), self.bg.get_height(), self.bg.get_width(), self.bg.get_height()))
+        self.rlst = [self.screenrect]
+        #for spritegroup in spritegroups:
+        #group.clear(screen, self.bg) Needs to be the size of the screen
+        rcts = self.spriteGroup.draw(screen)
+        #We are dealing with a LayeredDirty group
+        #FIXME LayeredDirty groups are broken???
+        if rcts != None:
+            for rct in rcts:
+                self.rlst.append(rct)
+        #We are dealing with a GroupSingle
+        else:
+            self.rlst.append(self.spriteGroup.sprite.rect)
 
 # TODO manage pygame draw groups?
 # This is probably not needed anymore now that we use the simpyl framework
@@ -269,19 +269,20 @@ class DrawSystem(System):
 #            spriteGroup.remove(entity.DirtySprite)
 #        return entitydict, entities, spriteGroup
 
-# TODO port this
+# TODO Change the call functions of this and all other systems to be named process
+# That way they can be called with one call to the simpyl.process method
 class AlienGeneratorSystem(System):
     def __init__(self):
         self.id = "AlienGeneratorSystem"
 
-    def gen(self, entities, alimg, screenrect, spriteGroup):
-        # FIXME Rate of generation needs to be accessible outside of the function (Note: easy)
+    def gen(self):
+        # FIXME Rate of generation needs to be accessible outside of the function
         if random.randint(0, 120) == 11:
-            alien = Entity('alien', DirtySprite(alimg, alimg.get_rect(x = random.randint(0, screenrect.width - alimg.get_width()), y = random.randint(0, screenrect.height - alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
+            alien = self.Entity(DirtySprite(self.alimg, self.alimg.get_rect(x = random.randint(0, self.screenrect.width - self.alimg.get_width()), y = random.randint(0, self.screenrect.height - self.alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
-            entities.append(alien)
-            spriteGroup.add(alien.DirtySprite)
+            
+            self.spriteGroup.add(alien.DirtySprite)
         return entities, spriteGroup
 
 # TODO port this thing
@@ -292,7 +293,7 @@ class JetAnimationSystem(System):
     def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
         reqimg = jetimgs[0]
         for i in range(2):
-            trail = Entity('jetTrail', DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
+            trail = Entity(DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
             trail.DirtySprite.imgs = jetimgs
             trail.DirtySprite.dirty = 2 # Set it to always be repainted because it's animated every frame
             entities.append(trail)

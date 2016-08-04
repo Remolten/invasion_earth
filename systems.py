@@ -76,7 +76,7 @@ class MovementSystem(System):
     def __init__(self):
         self.id = "MovementSystem"
 
-    def update(self, screenrect, entities, player):
+    def update(self):
         for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed', 'PlayerControl'):
             # Note this is dirty but necessary due to the flawed initial design of this system
             # An ECS should only access one component type per system

@@ -46,12 +46,11 @@ class Game(simpyl):
         
         # Below should be implemented but is not atm
         self.dt = 0
-        # FIXME ABOVE
+        # FIXME Implement dt into movement to prevent framerate determining movespeed
         
         self.font = pygame.font.SysFont("monospace", 60)
 
-        # TODO this probably needs to be changed but it will suffice for now
-        # Make a system/function for the loading and downscaling
+        # TODO Make a system/function for the loading and downscaling of images etc
         self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
@@ -86,9 +85,9 @@ class Game(simpyl):
     def start(self):
         # TODO fix all of these with the new api
         self.entities = []
-        self.plr = self.Entity('player', DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player1(), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player1(), PlayerControl(), Fire(), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
-        # CHANGE API OF THIS BELOW
+        # TODO CHANGE API OF THIS BELOW
         self.entities, self.spriteGroup = self.jetAnimationSystem.create(self.entities, self.plr.id, self.spriteGroup, self.jetimgs)
         self.entities.append(self.plr)
         self.entitiesDict = self.entityGroupSystem.isort(self.entities)

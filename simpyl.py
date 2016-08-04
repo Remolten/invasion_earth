@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
+# TODO Should implement id in addComponent and addSystem instead of requiring client to do it themselves
+
 # !!! Note: This class should only be invoked by the simpyl metaclass
 # Make a proper Entity object which only stores an id and a list of references to component objects
 class _Entity(object):
@@ -22,9 +24,11 @@ class _Entity(object):
         # _id should a unique value given by the simpyl metaclass
         self.id = _id
         
+        # A container for references to the components
+        self.cs = []
+        
         # Create a list of components this entity posseses
         for component in components:
-            self.cs.append(component)
             # Also allows direct access to components from an entity object
             self.__dict__[component.id] = component
         
@@ -199,5 +203,6 @@ class simpyl(object):
             
             # Runs the process function of each system
             # If args are present, each system is responsible to handle them
+            # NOTE probably not wise to trust the user to be able to accidentally send args etc
             self.__dict__[sys].process(*args, **kwargs)
     

@@ -54,17 +54,20 @@ class _Entity(object):
 # Obviously it should be changed from None to an appropriate unique identifier for what it does eg DrawSystem 
 class System(object):
     # Ensure there is an initial ID to prevent errors
-    self.id = None
+    # NOTE This is verry bad
+    id = None
         
     def process(self):
         # Children must declare a process method to be declared valid
         raise NotImplementedError
     
 # The only requirement of a component class is to implement an id
+# FIXME Component id must be its name
 # Obviously it should be changed from None to an appropriate unique identifier for what it does eg Sprite
 class Component(object):
     # Ensure there is an initial ID to prevent errors
-    self.id = None
+    # NOTE next time don't use builtin types as variable names
+    id = None
 
 # Inherit from this with the main game class to access the ECS functions
 class simpyl(object):
@@ -92,14 +95,13 @@ class simpyl(object):
     # This function returns an entity object and also adds components to the database
     def Entity(self, *components):
         # Generate the entity's new unique id
-        _id = newID()
-
-        # Add components to database and get all the component ids
-        # _cids is not needed under the new setup
-        _cids = self.addComponents(entityID = _id, *components)
-
+        _id = self.newID()
+        
         # Create an actual Entity object
         entity = _Entity(_id, *components)
+
+        # Add components to database and get all the component ids
+        self.addComponent(entity, *components)
         
         # Add it to the list of entities
         self.ents.add(entity)
@@ -125,30 +127,14 @@ class simpyl(object):
             system.game = self
             
     # Import all components and add them to the component database
-    # Can optionally provide this function with the entity object or just its ID
     
-    #
-    # TODO IMPORTANTstore the entity object instead of the id in the self.cs dict
-    #
-    '''Change this people now.'''
-    
-    def addComponent(self, entity = None, entityID = None, *components):
-        _cids = []
-        
+    def addComponent(self, entity, *components):
         for component in components:
             # Make sure each object received is a component
             assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class."
             
             # Add the component to the database if it is the correct type
-            if entityID is None:
-                self.cs[component] = entity.id
-            else:
-                self.cs[component] = entityID
-                
-            _cids.append(component.id)
-            
-        # Returns a list of strings of the ID's of the components
-        return _cids
+            self.cs[component] = entity
     
     # Removes a variable number of components from the database
     def rmComponent(self, *components):
@@ -167,7 +153,8 @@ class simpyl(object):
             
     # Return a dict of all components of the specified componentTypes
     # If there is more than one argument, it only returns the components of entities that possess all of the types given
-    def getComponents(self, *componentTypes):
+    # TODO Organize the components into sub groups containing only their type
+    def getComponents(self, componentType):
 #        # Get a dict of what the components should be and temporarily store them here
 #        _has = {}
 #        
@@ -187,18 +174,19 @@ class simpyl(object):
 #            
 #        return _csmod
             
-        return dict(filter(lambda x: x[0].id in componentTypes, self.cs.items()))
+        # Returns a dict of all entities with the specified component type
+        return dict(filter(lambda x: x[0].id == componentType, self.cs.items()))
     
     # Return all entities that contain the specified componentTypes
-    def getEntitiesByComponent(self, *componentTypes):
+    def getEntitiesByComponents(self, *componentTypes):
         # Container to return the components
-        _cs = []
+        _ents = []
         
         for entity in self.ents:
             if entity.has(*componentTypes):
-                _cs.append(entity)
+                _ents.append(entity)
                 
-        return cs
+        return _ents
             
     # Run this each loop iteration
     # Runs the process function of all systems

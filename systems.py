@@ -15,9 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
-import pygame_sdl2
-pygame_sdl2.import_as_pygame()
-
 import pygame
 from pygame.locals import *
 
@@ -37,7 +34,7 @@ import math, random
 # Processes events and changes the relevant values of certain components
 class EventSystem(System):
     def __init__(self):
-        pass
+        self.id = "EventSystem"
 
     def update(self):
         for playerControlComponent, playerControlEntity in enumerate(self.game.getComponents('PlayerControl')):
@@ -71,110 +68,133 @@ class EventSystem(System):
                         if event.key == K_SPACE:
                             fireComponent.fire = False
 
+# The MovementSystem has been ported! It should work fine.
+# Unfortunately, the initial design was incredibly flawed
+# This means the purity of the ECS is compromised unless we do a huge rewrite of this function
+# NOTE For future reference, each system must only deal with one single component, not multiple
 class MovementSystem(System):
     def __init__(self):
-        pass
+        self.id = "MovementSystem"
 
     def update(self, screenrect, entities, player):
-        for entity in entities:
-            if entity.has('DirtySprite', 'Speed'):
-                if entity.has('PlayerControl'):
-                    if entity.PlayerControl.up:
-                        entity.DirtySprite.dx += entity.Speed.maxspd * math.cos(math.radians(entity.DirtySprite.angle + 90)) * entity.Speed.thrust
-                        entity.DirtySprite.dy += entity.Speed.maxspd * math.sin(math.radians(entity.DirtySprite.angle - 90)) * entity.Speed.thrust
-                        entity.DirtySprite.dirty = 1
-                    elif entity.PlayerControl.dwn:
-                        pass # Not needed unless we add virtual brakes
-                    if entity.PlayerControl.lft:
-                        entity.DirtySprite.angle += entity.Speed.rotspd
-                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
-                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
-                        entity.DirtySprite.dirty = 1
-                    elif entity.PlayerControl.rgt:
-                        entity.DirtySprite.angle -= entity.Speed.rotspd
-                        entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
-                        entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
-                        entity.DirtySprite.dirty = 1
-                    elif entity.DirtySprite.dx == 0 and entity.DirtySprite.dy == 0:
-                        entity.DirtySprite.dirty = 0
-                    elif not entity.PlayerControl.up: #and not entity.PlayerControl.dwn:
-                        # Add a slight amount of friction
-                        if entity.DirtySprite.dx > 0:
-                            entity.DirtySprite.dx *= 0.97 #if entity.DirtySprite.dx > 0.3 else 0.9
-                        elif entity.DirtySprite.dx < 0:
-                            entity.DirtySprite.dx *= 0.9
-                        if entity.DirtySprite.dy > 0:
-                            entity.DirtySprite.dy *= 0.97 #if entity.DirtySprite.dy > 0.3 else 0.9
-                        elif entity.DirtySprite.dy < 0:
-                            entity.DirtySprite.dy *= 0.9
-                        # You could make a case for letting the ship drift when it gets to low speeds
-                        # But this just causes an instant drop off when the speed gets low
-                        if abs(entity.DirtySprite.dx) < 0.2:
-                            entity.DirtySprite.dx = 0
-                        if abs(entity.DirtySprite.dy) < 0.2:
-                            entity.DirtySprite.dy = 0
+        for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed', 'PlayerControl'):
+            # Note this is dirty but necessary due to the flawed initial design of this system
+            # An ECS should only access one component type per system
+            for component in entity.cs:
+                if component.id == 'DirtySprite':
+                    dsComponent = component
+                elif component.id == 'Speed':
+                    speedComponent = component
+                elif component.id == 'PlayerControl':
+                    pcComponent = component
+            
+            if pcComponent.up:
+                dsComponent.dx += speedComponent.maxspd * math.cos(math.radians(dsComponent.angle + 90)) * speedComponent.thrust
+                dsComponent.dy += speedComponent.maxspd * math.sin(math.radians(dsComponent.angle - 90)) * speedComponent.thrust
+                dsComponent.dirty = 1
+            #elif pcComponent.dwn:
+                #pass # Not needed unless we add virtual brakes
+            if pcComponent.lft:
+                dsComponent.angle += speedComponent.rotspd
+                dsComponent.image = pygame.transform.rotate(dsComponent.ogimage, dsComponent.angle)
+                dsComponent.rect = dsComponent.image.get_rect(center=dsComponent.rect.center)
+                dsComponent.dirty = 1
+            elif pcComponent.rgt:
+                dsComponent.angle -= speedComponent.rotspd
+                dsComponent.image = pygame.transform.rotate(dsComponent.ogimage, dsComponent.angle)
+                dsComponent.rect = dsComponent.image.get_rect(center=dsComponent.rect.center)
+                dsComponent.dirty = 1
+            elif dsComponent.dx == 0 and dsComponent.dy == 0:
+                dsComponent.dirty = 0
+            elif not pcComponent.up: #and not pcComponent.dwn:
+                # Add a slight amount of friction
+                if dsComponent.dx > 0:
+                    dsComponent.dx *= 0.97 #if dsComponent.dx > 0.3 else 0.9
+                elif dsComponent.dx < 0:
+                    dsComponent.dx *= 0.9
+                if dsComponent.dy > 0:
+                    dsComponent.dy *= 0.97 #if dsComponent.dy > 0.3 else 0.9
+                elif dsComponent.dy < 0:
+                    dsComponent.dy *= 0.9
+                # You could make a case for letting the ship drift when it gets to low speeds
+                # But this just causes an instant drop off when the speed gets low
+                if abs(dsComponent.dx) < 0.2:
+                    dsComponent.dx = 0
+                if abs(dsComponent.dy) < 0.2:
+                    dsComponent.dy = 0
 
-                if entity.has('Alien'):  
-                    # Here we set the aliens to track the player
-                    # All we have to do is set the angle to always face the player
-                    # Get slope and convert to degrees
-                    yslope = player.DirtySprite.rect.centery - entity.DirtySprite.rect.centery
-                    xslope = player.DirtySprite.rect.centerx - entity.DirtySprite.rect.centerx
-                    entity.DirtySprite.dx += entity.Speed.maxspd * xslope * entity.Speed.thrust
-                    entity.DirtySprite.dy += entity.Speed.maxspd * yslope * entity.Speed.thrust
-                    
-                if entity.has('Laser'):
-                    if entity.DirtySprite.rect.x <= 0 or entity.DirtySprite.rect.x >= screenrect.width - entity.DirtySprite.rect.width:
-                        entity.DirtySprite.dx *= -1
-                    if entity.DirtySprite.rect.y <= 0 or entity.DirtySprite.rect.y >= screenrect.height - entity.DirtySprite.rect.height:
-                        entity.DirtySprite.dy *= -1
-                    
-                    if entity.DirtySprite.dx != 0:
-                        entity.DirtySprite.angle = 90 - math.degrees(math.atan(entity.DirtySprite.dy / entity.DirtySprite.dx))
-                    elif entity.DirtySprite.dy == 0:
-                        entity.DirtySprite.angle = 90 if entity.DirtySprite.dx > 0 else 270
-                    else:
-                        entity.DirtySprite.angle = 0 if entity.DirtySprite.dy > 0 else 180
-                        
-                    entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.ogimage, entity.DirtySprite.angle)
-                    entity.DirtySprite.rect = entity.DirtySprite.image.get_rect(center=entity.DirtySprite.rect.center)
+        # FUTURE will be broken if we added multiplayer
+        for alienEntity in self.game.getEntitiesByComponents('Alien'):
+            # NOTE Movement will be wonky if there exists more then one Player1 component
+            for p1Entity in self.game.getEntitiesByComponents('Player1'):
+                # Here we set the aliens to track the player
+                # All we have to do is set the angle to always face the player
+                # Get slope and convert to degrees
+                yslope = p1Entity.DirtySprite.rect.centery - alienEntity.DirtySprite.rect.centery
+                xslope = p1Entity.DirtySprite.rect.centerx - alienEntity.DirtySprite.rect.centerx
+                alienEntity.DirtySprite.dx += alienEntity.Speed.maxspd * xslope * alienEntity.Speed.thrust
+                alienEntity.DirtySprite.dy += alienEntity.Speed.maxspd * yslope * alienEntity.Speed.thrust
 
-                # Keeps speed under maxspd but at the same ratio
-                entity.ratio = 1
-                if entity.DirtySprite.dx > entity.Speed.maxspd:
-                    entity.ratio = entity.Speed.maxspd / entity.DirtySprite.dx
-                elif entity.DirtySprite.dx < -entity.Speed.maxspd:
-                    entity.ratio = -entity.Speed.maxspd / entity.DirtySprite.dx
-                if entity.DirtySprite.dy > entity.Speed.maxspd:
-                    entity.ratio = entity.Speed.maxspd / entity.DirtySprite.dy
-                elif entity.DirtySprite.dy < -entity.Speed.maxspd:
-                    entity.ratio = -entity.Speed.maxspd / entity.DirtySprite.dy
+        for laserEntity in self.game.getEntitiesByComponents('Laser'):
+            if laserEntity.DirtySprite.rect.x <= 0 or laserEntity.DirtySprite.rect.x >= self.screenrect.width - laserEntity.DirtySprite.rect.width:
+                laserEntity.DirtySprite.dx *= -1
+            if laserEntity.DirtySprite.rect.y <= 0 or laserEntity.DirtySprite.rect.y >= self.screenrect.height - laserEntity.DirtySprite.rect.height:
+                laserEntity.DirtySprite.dy *= -1
 
-    def move(self, screenrect, entities):
-        for entity in entities:
-            entity.DirtySprite.dy *= entity.ratio
-            entity.DirtySprite.dx *= entity.ratio
-            entity.DirtySprite.rect.x += entity.DirtySprite.dx
-            entity.DirtySprite.rect.y += entity.DirtySprite.dy
+            if laserEntity.DirtySprite.dx != 0:
+                laserEntity.DirtySprite.angle = 90 - math.degrees(math.atan(laserEntity.DirtySprite.dy / laserEntity.DirtySprite.dx))
+            elif laserEntity.DirtySprite.dy == 0:
+                laserEntity.DirtySprite.angle = 90 if laserEntity.DirtySprite.dx > 0 else 270
+            else:
+                laserEntity.DirtySprite.angle = 0 if laserEntity.DirtySprite.dy > 0 else 180
+
+            laserEntity.DirtySprite.image = pygame.transform.rotate(laserEntity.DirtySprite.ogimage, laserEntity.DirtySprite.angle)
+            laserEntity.DirtySprite.rect = laserEntity.DirtySprite.image.get_rect(center=laserEntity.DirtySprite.rect.center)
+
+        # TODO Change this and above in this function to instead be put in the simpyl library directly eg have a simpyl function return a dict in the form {entity: [components]}
+        for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed'):
+            # Note this is dirty but necessary due to the flawed initial design of this system
+            # An ECS should only access one component type per system
+            for component in entity.cs:
+                if component.id == 'DirtySprite':
+                    dsComponent = component
+                elif component.id == 'Speed':
+                    speedComponent = component
+        
+            # Keeps speed under maxspd but at the same ratio
+            dsComponent.ratio = 1
+            if dsComponent.dx > speedComponent.maxspd:
+                dsComponent.ratio = speedComponent.maxspd / dsComponent.dx
+            elif dsComponent.dx < -speedComponent.maxspd:
+                dsComponent.ratio = -speedComponent.maxspd / dsComponent.dx
+            if dsComponent.dy > speedComponent.maxspd:
+                dsComponent.ratio = speedComponent.maxspd / dsComponent.dy
+            elif dsComponent.dy < -speedComponent.maxspd:
+                dsComponent.ratio = -speedComponent.maxspd / dsComponent.dy
+
+            # Actually move stuff
+            dsComponent.dy *= dsComponent.ratio
+            dsComponent.dx *= dsComponent.ratio
+            dsComponent.rect.x += dsComponent.dx
+            dsComponent.rect.y += dsComponent.dy
 
             # Keep sprite inside the screen
-            entity.DirtySprite.rect.clamp_ip(screenrect)
+            dsComponent.rect.clamp_ip(self.screenrect)
 
-# A system which creates lasers for all fire objects
+# A system which creates lasers for all entities with fire objects
 class FireSystem(System):
     def __init__(self):
-        pass
+        self.id = "FireSystem"
 
     def update(self): 
-        # TODO change all plr references to fireEntity
         for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
             if fireComponent.fire and not fireComponent.over:
                 fireComponent.over = True
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
                 # TODO add optional kwargs for these DirtySprite variable settings in the component
-                laser = self.Entity('laser', DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = plr.DirtySprite.rect.x + plr.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = plr.DirtySprite.rect.y + plr.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
-                laser.DirtySprite.angle = plr.DirtySprite.angle
+                laser = self.Entity('laser', DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
+                laser.DirtySprite.angle = fireEntity.DirtySprite.angle
                 laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
                 laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
                 laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
@@ -193,7 +213,7 @@ class FireSystem(System):
 # TODO port this
 class DrawSystem(System):
     def __init__(self):
-        pass
+        self.id = "DrawSystem"
 
     def draw(self, screen, screenrect, bg, *spritegroups):
         screen.fill((0, 0, 0))
@@ -252,7 +272,7 @@ class DrawSystem(System):
 # TODO port this
 class AlienGeneratorSystem(System):
     def __init__(self):
-        pass
+        self.id = "AlienGeneratorSystem"
 
     def gen(self, entities, alimg, screenrect, spriteGroup):
         # FIXME Rate of generation needs to be accessible outside of the function (Note: easy)
@@ -267,7 +287,7 @@ class AlienGeneratorSystem(System):
 # TODO port this thing
 class JetAnimationSystem(System):
     def __init__(self):
-        pass
+        self.id = "JetAnimationSystem"
     
     def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
         reqimg = jetimgs[0]

@@ -27,8 +27,11 @@ from simpyl import simpyl
 from systems import *
 from components import *
 
-class Game(ecsGame):
+class Game(simpyl):
     def __init__(self):
+        # Call the init method of the simpyl parent class
+        super().__init__()
+        
         self.ssx = 800
         self.ssy = 600
         self.gameover = False

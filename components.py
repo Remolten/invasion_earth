@@ -15,16 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
-import pygame_sdl2
-pygame_sdl2.import_as_pygame()
-
 from pygame.sprite import DirtySprite
 
 from simpyl import Component
 
 class DirtySprite(DirtySprite, Component):
     def __init__(self, img, rect):
-        super(DirtySprite, self).__init__()
+        super().__init__()
         self.id = 'DirtySprite'
         self.image = img
         self.ogimage = img # For rotations

@@ -37,9 +37,9 @@ class EventSystem(System):
         self.id = "EventSystem"
 
     def update(self):
-        for playerControlComponent, playerControlEntity in enumerate(self.game.getComponents('PlayerControl')):
-            for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
-                for event in self.events:
+        for playerControlComponent, playerControlEntity in self.game.getComponents('PlayerControl').items():
+            for fireComponent, fireEntity in self.game.getComponents('Fire').items():
+                for event in self.game.events:
                     if event.type == KEYDOWN:
                         if event.key == K_UP or event.key == ord('w'):
                             playerControlComponent.up = True
@@ -78,6 +78,7 @@ class MovementSystem(System):
 
     def update(self):
         for entity in self.game.getEntitiesByComponents('DirtySprite', 'Speed', 'PlayerControl'):
+            print('We got some matches now')
             # Note this is dirty but necessary due to the flawed initial design of this system
             # An ECS should only access one component type per system
             for component in entity.cs:
@@ -182,25 +183,26 @@ class MovementSystem(System):
             dsComponent.rect.clamp_ip(self.screenrect)
 
 # A system which creates lasers for all entities with fire objects
+# TODO This system and the others below should avoid accessing self variables whenever possible
 class FireSystem(System):
     def __init__(self):
         self.id = "FireSystem"
 
     def update(self): 
-        for fireComponent, fireEntity in enumerate(self.game.getComponents('Fire')):
+        for fireComponent, fireEntity in self.game.getComponents('Fire').items():
             if fireComponent.fire and not fireComponent.over:
                 fireComponent.over = True
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
                 # TODO add optional kwargs for these DirtySprite variable settings in the component
-                laser = self.Entity(DirtySprite(self.lsrimg, self.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
+                laser = self.game.Entity(DirtySprite(self.game.lsrimg, self.game.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.game.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.game.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
                 laser.DirtySprite.angle = fireEntity.DirtySprite.angle
                 laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
                 laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
                 laser.DirtySprite.dy = laser.Speed.maxspd * math.sin(math.radians(laser.DirtySprite.angle - 90))
                 
                 # TODO this should be relegated to some sort of sprite group internal system
-                self.spriteGroup.add(laser.DirtySprite)
+                self.game.spriteGroup.add(laser.DirtySprite)
                 
             elif fireComponent.over:
                 fireComponent.overt += 1
@@ -217,23 +219,23 @@ class DrawSystem(System):
         self.id = "DrawSystem"
 
     def draw(self):
-        self.screen.fill((0, 0, 0))
-        self.screen.blit(self.bg, pygame.Rect(0, 0, self.bg.get_width(), self.bg.get_height()))
-        self.screen.blit(self.bg, pygame.Rect(self.bg.get_width(), 0, self.bg.get_width(), self.bg.get_height()))
-        self.screen.blit(self.bg, pygame.Rect(0, self.bg.get_height(), self.bg.get_width(), self.bg.get_height()))
-        self.screen.blit(self.bg, pygame.Rect(self.bg.get_width(), self.bg.get_height(), self.bg.get_width(), self.bg.get_height()))
-        self.rlst = [self.screenrect]
+        self.game.screen.fill((0, 0, 0))
+        self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_width(), self.game.bg.get_height()))
+        self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), 0, self.game.bg.get_width(), self.game.bg.get_height()))
+        self.game.screen.blit(self.game.bg, pygame.Rect(0, self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
+        self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
+        self.game.rlst = [self.game.screenrect]
         #for spritegroup in spritegroups:
-        #group.clear(screen, self.bg) Needs to be the size of the screen
-        rcts = self.spriteGroup.draw(screen)
+        #group.clear(screen, self.game.bg) Needs to be the size of the screen
+        rcts = self.game.spriteGroup.draw(self.game.screen)
         #We are dealing with a LayeredDirty group
         #FIXME LayeredDirty groups are broken???
         if rcts != None:
             for rct in rcts:
-                self.rlst.append(rct)
+                self.game.rlst.append(rct)
         #We are dealing with a GroupSingle
-        else:
-            self.rlst.append(self.spriteGroup.sprite.rect)
+#        else:
+#            self.game.rlst.append(self.spriteGroup.sprite.rect)
 
 # TODO manage pygame draw groups?
 # This is probably not needed anymore now that we use the simpyl framework
@@ -278,58 +280,57 @@ class AlienGeneratorSystem(System):
     def gen(self):
         # FIXME Rate of generation needs to be accessible outside of the function
         if random.randint(0, 120) == 11:
-            alien = self.Entity(DirtySprite(self.alimg, self.alimg.get_rect(x = random.randint(0, self.screenrect.width - self.alimg.get_width()), y = random.randint(0, self.screenrect.height - self.alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
+            alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             
-            self.spriteGroup.add(alien.DirtySprite)
-        return entities, spriteGroup
+            self.game.spriteGroup.add(alien.DirtySprite)
 
-# TODO port this thing
-class JetAnimationSystem(System):
-    def __init__(self):
-        self.id = "JetAnimationSystem"
-    
-    def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
-        reqimg = jetimgs[0]
-        for i in range(2):
-            trail = Entity(DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
-            trail.DirtySprite.imgs = jetimgs
-            trail.DirtySprite.dirty = 2 # Set it to always be repainted because it's animated every frame
-            entities.append(trail)
-            spriteGroup.add(trail.DirtySprite)
-        return entities, spriteGroup
-    
-    def update(self, entities):
-        for entity in entities:
-            if entity.has('JetAnimation'):
-                if entity.JetAnimation.freqct == entity.JetAnimation.freq:
-                    if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
-                        entity.DirtySprite.imgindex = 0
-                    else:
-                        entity.DirtySprite.imgindex += 1
-
-                    entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
-                    entity.JetAnimation.freqct = 0
-                else:
-                    entity.JetAnimation.freqct += 1
-                
-                # Get the entity it is attached to
-                attachedToEntity = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
-                
-                entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.imgs[entity.DirtySprite.imgindex], attachedToEntity.DirtySprite.angle)
-                    
-                # Determine position relative to the entity its attached to
-                # Use the parametric equation of a circle
-                radius = max(attachedToEntity.DirtySprite.rect.width, attachedToEntity.DirtySprite.rect.height) / 1
-                x = radius * math.cos(math.radians(attachedToEntity.DirtySprite.angle + 270))
-                y = radius * math.sin(math.radians(attachedToEntity.DirtySprite.angle - 270))
-                
-                if entity.JetAnimation.pos == 0:
-#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.centerx + x, attachedToEntity.DirtySprite.rect.centery + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-                else:
-                    pass
+# TODO port this JET ANIMATION AWESOME CLASS
+#class JetAnimationSystem(System):
+#    def __init__(self):
+#        self.id = "JetAnimationSystem"
+#    
+#    def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
+#        reqimg = jetimgs[0]
+#        for i in range(2):
+#            trail = Entity(DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
+#            trail.DirtySprite.imgs = jetimgs
+#            trail.DirtySprite.dirty = 2 # Set it to always be repainted because it's animated every frame
+#            entities.append(trail)
+#            spriteGroup.add(trail.DirtySprite)
+#        return entities, spriteGroup
+#    
+#    def update(self, entities):
+#        for entity in entities:
+#            if entity.has('JetAnimation'):
+#                if entity.JetAnimation.freqct == entity.JetAnimation.freq:
+#                    if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
+#                        entity.DirtySprite.imgindex = 0
+#                    else:
+#                        entity.DirtySprite.imgindex += 1
+#
+#                    entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
+#                    entity.JetAnimation.freqct = 0
+#                else:
+#                    entity.JetAnimation.freqct += 1
+#                
+#                # Get the entity it is attached to
+#                attachedToEntity = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
+#                
+#                entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.imgs[entity.DirtySprite.imgindex], attachedToEntity.DirtySprite.angle)
+#                    
+#                # Determine position relative to the entity its attached to
+#                # Use the parametric equation of a circle
+#                radius = max(attachedToEntity.DirtySprite.rect.width, attachedToEntity.DirtySprite.rect.height) / 1
+#                x = radius * math.cos(math.radians(attachedToEntity.DirtySprite.angle + 270))
+#                y = radius * math.sin(math.radians(attachedToEntity.DirtySprite.angle - 270))
+#                
+#                if entity.JetAnimation.pos == 0:
+##                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.centerx + x, attachedToEntity.DirtySprite.rect.centery + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
+#                else:
+#                    pass
 #                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width - attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
 #                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + x, attachedToEntity.DirtySprite.rect.y + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
 

@@ -63,19 +63,10 @@ class Game(simpyl):
         # Load the main font, which will likely change for release
         # Maybe add a font system as well if that's needed later
         self.font = pygame.font.SysFont("monospace", 60)
-
-        # Initialize all of the necessary systems
-#        self.eventSystem = EventSystem()
-#        self.movementSystem = MovementSystem()
-#        self.fireSystem = FireSystem()
-#        self.drawSystem = DrawSystem()
-#        self.alienGeneratorSystem = AlienGeneratorSystem()
-#        self.collisionSystem = CollisionSystem()
-        #self.jetAnimationSystem = JetAnimationSystem()
         
         # Add all of the systems to the main database
         #self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem, self.collisionSystem)
-        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), DrawSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem())
+        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
         
         # Load all assets
         # TODO call this function with arguments for each image needed and add image + downscale args
@@ -84,25 +75,25 @@ class Game(simpyl):
         
     def load(self):
         # Load all images
-        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'Parallax100.png')).convert()
+        self.bg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'Backgrounds', 'spr_stars01.png')).convert()
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
         self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
-        self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
-        self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
-        self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
+        #self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
+        #self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
+        #self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
         
         # This may not be necessary with the new refactoring
-        self.jetimgs = [self.jet1, self.jet4, self.jet5]
+        #self.jetimgs = [self.jet1, self.jet4, self.jet5]
 
         # Scale down by factor of 3 for most things
         downscale = 3
         self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
         self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
         self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
-        self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
-        self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
-        self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
+        #self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
+        #self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
+        #self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
 
     def start(self):
         # Hopefully should be able to call super().__init__() to reset the game
@@ -125,31 +116,18 @@ class Game(simpyl):
                 # Add each event to the events list to be accessed by the EventSystem
                 self.events.append(event)
              
-            # Runs the process method of all systems that have been added
+            # Runs the process method of all added systems
             self.process()   
-
-            # FIXME Code below here is dirty stuff that needs to be properly done in a CollisionSystem + ported
-            # This code is also broken with the new framework anyways
-#            for alien in self.entityGroupSystem.get(self.entitiesDict, 'Alien'):
-#                if self.plr.DirtySprite.rect.colliderect(alien.DirtySprite.rect):
-#                    self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien)
-#                    self.gameover = True
-#                    ct = 0
-#                #quick hack to check that alien is not already destroyed, inefficient change later
-#                for laser in self.entityGroupSystem.get(self.entitiesDict, 'Laser'):
-#                    if laser.DirtySprite.rect.colliderect(alien.DirtySprite.rect) and alien in self.entities:
-#                        self.entitiesDict, self.entities, self.spriteGroup = self.entityGroupSystem.destroy(self.entitiesDict, self.entities, self.spriteGroup, alien, laser)
-#            if self.gameover:
-#                ct += 1
-#                self.screen.blit(self.font.render("wATch out", 1, (255,255,0)), (self.ssx / 8, self.ssy / 3))
-#                if ct == 120:
-#                    ct = 0
-#                    self.gameover = False
+            
+            #self.screen.blit(self.font.render("wATch out", 1, (255,255,0)), (self.ssx / 8, self.ssy / 3))
                     
             # Flush the events list
             self.events = []
 
+            # Push the draw calls to the screen
             pygame.display.update(self.rlst)
+            
+            # Limit framerate to 60 FPS and record the delta time
             self.dt = self.clock.tick(60)
 
 if __name__ == '__main__':

@@ -90,7 +90,7 @@ class simpyl(object):
         
         # Create a container for the ID's of all the systems so they can be called in process
         # Systems are also accessible directly
-        self.sys = set()
+        self.sys = []
         
     def newID(self):
         self.uid += 1
@@ -137,7 +137,7 @@ class simpyl(object):
             # Ensure we received a valid system object
             assert isinstance(system, System) and system.id is not None, "The addSystem function requires a valid input of instances of the included System class.\nReceived something of the wrong type or with an ID of None"
             # Add it to the set, which will reject duplicates
-            self.sys.add(system.id)
+            self.sys.append(system.id)
             
             # Ensures that the system has not already been added
             assert system.id not in self.__dict__, "Invalid system name. Either received a duplicate system name or the system name clashed with an internal python method. Rename the system.id to something else to fix."
@@ -148,7 +148,6 @@ class simpyl(object):
             system.game = self
             
     # Import all components and add them to the component database
-    
     def addComponent(self, entity, *components):
         for component in components:
             # Make sure each object received is a component

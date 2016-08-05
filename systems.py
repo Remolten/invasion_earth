@@ -200,27 +200,26 @@ class CollisionSystem(System):
         for playerEntity in self.game.getEntitiesByComponents('Player'):
             players.append(playerEntity)
             
-        for player in players:
-            self.checkEntityListCollision(player, aliens, 0, 1)
-            
-        for laser in lasers:
-            self.checkEntityListCollision(laser, aliens, 1, 1)
-                    
-    def checkEntityListCollision(self, entity, entityList, damage1, damage2):
-        collisions = entity.DirtySprite.rect.collidelistall([e.DirtySprite.rect for e in entityList])
-        
-        # We have a collision
-        if len(collisions) > 0:
-            for entityIndex in collisions:
-                _entity = entityList[entityIndex]
-                
-                # Apply damage to each entity from the list that collided
-                if _entity.has('Health'):
-                    _entity.Health.damage += damage2
-            
-            # Apply any damage (if any), to the first singular entity arg
-            if entity.has('Health'):
-                entity.Health.damage += damage1
+        self.checkListListCollision(players, aliens, 0, 1)
+        self.checkListListCollision(lasers, aliens, 1, 1)
+      
+    # Expects to receive a 2 lists of entity objects + 2 amounts of damage
+    def checkListListCollision(self, entityList1, entityList2, damage1, damage2):
+        for entity in entityList1:
+            collisions = entity.DirtySprite.rect.collidelistall([e.DirtySprite.rect for e in entityList2])
+
+            # We have a collision
+            if len(collisions) > 0:
+                for entityIndex in collisions:
+                    _entity = entityList2[entityIndex]
+
+                    # Apply damage to each entity from the list that collided
+                    if _entity.has('Health'):
+                        _entity.Health.damage += damage2
+
+                # Apply any damage (if any), to the first singular entity arg
+                if entity.has('Health'):
+                    entity.Health.damage += damage1
                     
 # Monitors all entities with a health component
 # Deletes them from the game if they are not a player and their health is zero
@@ -254,9 +253,8 @@ class AliveSystem(System):
         for rmEnt in rmEnts:
             # Remove entities from the world
             self.game.rmEntity(rmEnt)
-            # Will break if we use more than one sprite group
-            # Removes entity from the drawing list
-            self.game.spriteGroup.remove(rmEnt.DirtySprite)
+            # Removes entity from all sprite groups
+            rmEnt.DirtySprite.kill()
                     
 # A system which creates lasers for all entities with fire objects
 # TODO This system and the others below should avoid accessing self variables whenever possible
@@ -287,6 +285,16 @@ class FireSystem(System):
                 fireComponent.overt = 0
                 fireComponent.over = False
 
+# Handles the parallax and moving background images
+class MovingBackgroundSystem(System):
+    def __init__(self):
+        self.id = 'MovingBackgroundSystem'
+        self.x = -2
+        self.y = -1
+    
+    def process(self):
+        self.game.bg.scroll(dx=self.x, dy=self.y)
+
 # TODO DrawSystem should be revamped to take entity lists, not sprite groups
 class DrawSystem(System):
     def __init__(self):
@@ -294,10 +302,10 @@ class DrawSystem(System):
 
     def process(self):
         self.game.screen.fill((0, 0, 0))
-        self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_width(), self.game.bg.get_height()))
-        self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), 0, self.game.bg.get_width(), self.game.bg.get_height()))
-        self.game.screen.blit(self.game.bg, pygame.Rect(0, self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
-        self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
+        self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_clip()[2], self.game.bg.get_clip()[3]))
+        #self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), 0, self.game.bg.get_width(), self.game.bg.get_height()))
+        #self.game.screen.blit(self.game.bg, pygame.Rect(0, self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
+        #self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
         self.game.rlst = [self.game.screenrect]
         #for spritegroup in spritegroups:
         #group.clear(screen, self.game.bg) Needs to be the size of the screen
@@ -325,6 +333,19 @@ class AlienGeneratorSystem(System):
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             
             self.game.spriteGroup.add(alien.DirtySprite)
+            
+            
+# Checks if there are player objects remaining
+# If not, will show the game over screen
+class GameOverSystem(System):
+    def __init__(self):
+        self.id = 'GameOverSystem'
+        
+    def process(self):
+        if len(self.game.getEntitiesByComponents('Player')) == 0:
+            # Process game over stuff here
+            pass
+            #print('Game Over')
 
 # TODO port this JET ANIMATION AWESOME CLASS
 #class JetAnimationSystem(System):

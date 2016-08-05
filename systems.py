@@ -118,14 +118,14 @@ class MovementSystem(System):
 
         # FUTURE will be broken if we added multiplayer
         for alienEntity in self.game.getEntitiesByComponents('Alien'):
-            # NOTE Movement will be wonky if there exists more then one Player1 component
+            # NOTE Movement will be wonky if there exists more then one Player component
             # Aliens should instead be attached to 1 player object upon creation
-            for p1Entity in self.game.getEntitiesByComponents('Player1'):
+            for pEntity in self.game.getEntitiesByComponents('Player'):
                 # Here we set the aliens to track the player
                 # All we have to do is set the angle to always face the player
                 # Get slope and convert to degrees
-                yslope = p1Entity.DirtySprite.rect.centery - alienEntity.DirtySprite.rect.centery
-                xslope = p1Entity.DirtySprite.rect.centerx - alienEntity.DirtySprite.rect.centerx
+                yslope = pEntity.DirtySprite.rect.centery - alienEntity.DirtySprite.rect.centery
+                xslope = pEntity.DirtySprite.rect.centerx - alienEntity.DirtySprite.rect.centerx
                 alienEntity.DirtySprite.dx += alienEntity.Speed.maxspd * xslope * alienEntity.Speed.thrust
                 alienEntity.DirtySprite.dy += alienEntity.Speed.maxspd * yslope * alienEntity.Speed.thrust
 
@@ -182,8 +182,82 @@ class CollisionSystem(System):
         self.id = 'CollisionSystem'
         
     def process(self):
-        pass
-
+        # Lists to hold the types we need
+        aliens = []
+        lasers = []
+        players = []
+        
+        # Get all entities with the potential to collide
+#        for collisionComponent, collisionEntity in self.game.getComponents('Collision').items():
+#            pass
+        
+        for alienEntity in self.game.getEntitiesByComponents('Alien'):
+            aliens.append(alienEntity)
+            
+        for laserEntity in self.game.getEntitiesByComponents('Laser'):
+            lasers.append(laserEntity)
+        
+        for playerEntity in self.game.getEntitiesByComponents('Player'):
+            players.append(playerEntity)
+            
+        for player in players:
+            self.checkEntityListCollision(player, aliens, 0, 1)
+            
+        for laser in lasers:
+            self.checkEntityListCollision(laser, aliens, 1, 1)
+                    
+    def checkEntityListCollision(self, entity, entityList, damage1, damage2):
+        collisions = entity.DirtySprite.rect.collidelistall([e.DirtySprite.rect for e in entityList])
+        
+        # We have a collision
+        if len(collisions) > 0:
+            for entityIndex in collisions:
+                _entity = entityList[entityIndex]
+                
+                # Apply damage to each entity from the list that collided
+                if _entity.has('Health'):
+                    _entity.Health.damage += damage2
+            
+            # Apply any damage (if any), to the first singular entity arg
+            if entity.has('Health'):
+                entity.Health.damage += damage1
+                    
+# Monitors all entities with a health component
+# Deletes them from the game if they are not a player and their health is zero
+class HealthSystem(System):
+    def __init__(self):
+        self.id = 'HealthSystem'
+        
+    def process(self):
+        for healthComponent, healthEntity in self.game.getComponents('Health').items():
+            # Apply all damage then reset
+            healthComponent.health -= healthComponent.damage
+            healthComponent.damage = 0
+            
+            if healthComponent.health <= 0:
+                healthEntity.Alive.alive = False
+            
+# Removes entities that have been flagged as not alive
+class AliveSystem(System):
+    def __init__(self):
+        self.id = 'AliveSystem'
+        
+    def process(self):
+        # Container for entities to be removed
+        rmEnts = []
+        
+        # Actually check for what entities need to be removed
+        for aliveComponent, aliveEntity in self.game.getComponents('Alive').items():
+            if not aliveComponent.alive:
+                rmEnts.append(aliveEntity)
+                
+        for rmEnt in rmEnts:
+            # Remove entities from the world
+            self.game.rmEntity(rmEnt)
+            # Will break if we use more than one sprite group
+            # Removes entity from the drawing list
+            self.game.spriteGroup.remove(rmEnt.DirtySprite)
+                    
 # A system which creates lasers for all entities with fire objects
 # TODO This system and the others below should avoid accessing self variables whenever possible
 class FireSystem(System):
@@ -197,7 +271,7 @@ class FireSystem(System):
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
                 # TODO add optional kwargs for these DirtySprite variable settings in the component
-                laser = self.game.Entity(DirtySprite(self.game.lsrimg, self.game.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.game.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.game.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), AIControl(), Laser())
+                laser = self.game.Entity(DirtySprite(self.game.lsrimg, self.game.lsrimg.get_rect(x = fireEntity.DirtySprite.rect.x + fireEntity.DirtySprite.rect.width / 2 - self.game.lsrimg.get_width() / 2, y = fireEntity.DirtySprite.rect.y + fireEntity.DirtySprite.rect.height / 2 - self.game.lsrimg.get_height() / 2)), Speed(12, 6, 0.1), Movement(), Health(1), Alive(), AIControl(), Laser())
                 laser.DirtySprite.angle = fireEntity.DirtySprite.angle
                 laser.DirtySprite.image = pygame.transform.rotate(laser.DirtySprite.ogimage, laser.DirtySprite.angle)
                 laser.DirtySprite.dx = laser.Speed.maxspd * math.cos(math.radians(laser.DirtySprite.angle + 90))
@@ -246,7 +320,7 @@ class AlienGeneratorSystem(System):
     def process(self):
         # FIXME Rate of generation needs to be accessible outside of the function
         if random.randint(0, 120) == 11:
-            alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Movement(), AIControl(), Alien())
+            alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Health(1), Alive(), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             

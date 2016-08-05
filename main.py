@@ -65,15 +65,17 @@ class Game(simpyl):
         self.font = pygame.font.SysFont("monospace", 60)
 
         # Initialize all of the necessary systems
-        self.eventSystem = EventSystem()
-        self.movementSystem = MovementSystem()
-        self.fireSystem = FireSystem()
-        self.drawSystem = DrawSystem()
-        self.alienGeneratorSystem = AlienGeneratorSystem()
+#        self.eventSystem = EventSystem()
+#        self.movementSystem = MovementSystem()
+#        self.fireSystem = FireSystem()
+#        self.drawSystem = DrawSystem()
+#        self.alienGeneratorSystem = AlienGeneratorSystem()
+#        self.collisionSystem = CollisionSystem()
         #self.jetAnimationSystem = JetAnimationSystem()
         
         # Add all of the systems to the main database
-        self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem)
+        #self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem, self.collisionSystem)
+        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), DrawSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem())
         
         # Load all assets
         # TODO call this function with arguments for each image needed and add image + downscale args
@@ -105,7 +107,7 @@ class Game(simpyl):
     def start(self):
         # Hopefully should be able to call super().__init__() to reset the game
         # FUTURE relegate player creation + sprite groups to a system
-        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player1(), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), Fire(), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
 
     def run(self):

@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 
+# TODO certain components should require other components to be implemented
+
 from pygame.sprite import DirtySprite
 
 from simpyl import Component
@@ -52,7 +54,8 @@ class PlayerControl(Component):
 class Health(Component):
     def __init__(self, hlth):
         self.id = 'Health'
-        self.hlth = hlth
+        self.health = hlth
+        self.damage = 0
 
 class Fire(Component):
     def __init__(self):
@@ -83,11 +86,20 @@ class JetAnimation(Component):
         self.attachedid = attachedEntityID
         self.freq = freq # AKA change image every freq frames
         self.freqct = 0
+        
+class Alive(Component):
+    def __init__(self):
+        self.id = 'Alive'
+        self.alive = True
 
-# Placeholder classes for easier EGS grouping and/or identification
+# Placeholder classes for easier identification
 class Movement(Component):
     def __init__(self):
         self.id = 'Movement'
+
+class Collision(Component):
+    def __init__(self):
+        self.id = 'Collision'
 
 class Events(Component):
     def __init__(self):
@@ -105,6 +117,6 @@ class Laser(Component):
     def __init__(self):
         self.id = 'Laser'
         
-class Player1(Component):
+class Player(Component):
     def __init__(self):
-        self.id = 'Player1'
+        self.id = 'Player'

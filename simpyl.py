@@ -116,6 +116,20 @@ class simpyl(object):
         # Return the entity object to be assigned
         return entity
     
+    def rmEntity(self, _entity):
+        # Remove all components it owns from self.cs
+        for componentType, innerDict in self.cs.items():
+            for component, entity in innerDict.items():
+                if entity == _entity:
+                    del self.cs[component.id][component]
+                    break
+                    
+        # Remove from the entity set
+        self.ents.remove(_entity)
+        
+        # Delete the actual object
+        del _entity
+    
     # Systems should be declared as functions in the child of this class
     # However this allows for functions to be modularized and imported from a different file
     def addSystem(self, *systems):
@@ -127,7 +141,7 @@ class simpyl(object):
             
             # Ensures that the system has not already been added
             assert system.id not in self.__dict__, "Invalid system name. Either received a duplicate system name or the system name clashed with an internal python method. Rename the system.id to something else to fix."
-            # Systems can be accessed by self.system in the child of this class if needed
+            # Systems can be accessed by self.game.system in the child of this class if needed
             self.__dict__[system.id] = system
             
             # Give each system access to everything in this class and the child
@@ -148,23 +162,27 @@ class simpyl(object):
 #                #self.cs[component]
             
             # Add the component to the database if it is the correct type
-            self.cs[component.id] = {component: entity}
+            if component.id in self.cs.keys():
+                self.cs[component.id] = {**self.cs[component.id], **{component: entity}}
+            else:
+                self.cs[component.id] = {component: entity}
     
     # Removes a variable number of components from the database
     # FUTURE Could resort self.cs just in case the removed component was the last of its type
-    def rmComponent(self, *components):
-        for component in components:
-            # Ensures each argument is a component
-            assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class."
-            
-            # Checks if the component exists and self.cs and checks and removes from the entity as well
-            if component in self.cs and list(filter(lambda x: x.id == self.cs[component.id], self.ents))[0].rm(component.id):
-                # Removes the component string from the entity itself
-                # And also from the main database
-                del self.cs[component.id]
-            else:
-                # Couldn't find the component in the database
-                return "Component not found in database or owner entity. Unable to remove."
+    # TODO This is most likely broken atm
+#    def rmComponent(self, *components):
+#        for component in components:
+#            # Ensures each argument is a component
+#            assert isinstance(component, Component) and component.id is not None, "Received an invalid component object. Make sure each component object inherits from the Component class."
+#            
+#            # Checks if the component exists and self.cs and checks and removes from the entity as well
+#            if component in self.cs and list(filter(lambda x: x.id == self.cs[component.id], self.ents))[0].rm(component.id):
+#                # Removes the component string from the entity itself
+#                # And also from the main database
+#                del self.cs[component.id]
+#            else:
+#                # Couldn't find the component in the database
+#                return "Component not found in database or owner entity. Unable to remove."
             
     # Return a dict of all components of the specified componentType
     # TODO Organize the components into sub groups containing only their type
@@ -176,6 +194,7 @@ class simpyl(object):
         cs = dict(filter(lambda x: x[0] == componentType, self.cs.items()))
         
         # Only return the internal dict with the actual components
+        # FIXME broken when there are no components of that type
         return list(cs.values())[0]
         # Above works as long as we don't allow user to get multiple componentTypes at once
     

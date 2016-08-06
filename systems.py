@@ -289,11 +289,56 @@ class FireSystem(System):
 class MovingBackgroundSystem(System):
     def __init__(self):
         self.id = 'MovingBackgroundSystem'
-        self.x = -2
-        self.y = -1
+        self.x = 0
+        self.xmod = 0
+        self.xchoices = [-1, 0, 1]
+        self.y = 0
+        self.ymod = 0
+        self.ychoices = [-1, 0, 1]
+        self.waitct = 100
+        self.switch = 100
     
     def process(self):
-        self.game.bg.scroll(dx=self.x, dy=self.y)
+        if random.randint(self.waitct, self.switch) == self.switch or self.waitct >= self.switch:
+            self.xmod = random.choice(self.xchoices)
+            self.ymod = random.choice(self.ychoices)
+            
+            self.xchoices = [-1, 0, 1]
+            self.ychoices = [-1, 0, 1]
+            
+            if self.ymod == 0 and self.xmod != 0:
+                self.xchoices.remove(-self.xmod)
+            
+            if self.xmod == 0 and self.ymod != 0:
+                self.ychoices.remove(-self.ymod)
+            
+            if self.xmod == 0 and self.ymod == 0:
+                if random.randint(0, 1) == 1:
+                    self.xmod = random.choice([-1, 1])
+                else:
+                    self.ymod = random.choice([-1, 1])
+            elif self.xmod == self.ymod:
+                if random.randint(0, 1) == 1:
+                    self.xchoices.remove(-self.xmod)
+                else:
+                    self.ychoices.remove(-self.ymod)
+                
+            self.waitct = 0
+        
+        self.x += self.xmod
+        self.y += self.ymod
+        self.waitct += 1
+        
+        if self.x + self.game.screenrect.width > self.game.bg.get_width():
+            self.x = 0
+        elif self.x < 0:
+            self.x = self.game.bg.get_width() - self.game.screenrect.width
+        if self.y + self.game.screenrect.height > self.game.bg.get_height():
+            self.y = 0
+        elif self.y < 0:
+            self.y = self.game.bg.get_height() - self.game.screenrect.height
+
+        self.game.bg.set_clip(pygame.Rect(self.x, self.y, self.game.screenrect.width, self.game.screenrect.height))
 
 # TODO DrawSystem should be revamped to take entity lists, not sprite groups
 class DrawSystem(System):
@@ -302,7 +347,7 @@ class DrawSystem(System):
 
     def process(self):
         self.game.screen.fill((0, 0, 0))
-        self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_clip()[2], self.game.bg.get_clip()[3]))
+        self.game.screen.blit(self.game.bg, pygame.Rect(0, 0, self.game.bg.get_clip()[2], self.game.bg.get_clip()[3]), (self.game.bg.get_clip()))
         #self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), 0, self.game.bg.get_width(), self.game.bg.get_height()))
         #self.game.screen.blit(self.game.bg, pygame.Rect(0, self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))
         #self.game.screen.blit(self.game.bg, pygame.Rect(self.game.bg.get_width(), self.game.bg.get_height(), self.game.bg.get_width(), self.game.bg.get_height()))

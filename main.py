@@ -66,7 +66,7 @@ class Game(simpyl):
         
         # Add all of the systems to the main database
         #self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem, self.collisionSystem)
-        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
+        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), FlashSystem(), ShieldSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
         
         # Load all assets
         # TODO call this function with arguments for each image needed and add image + downscale args
@@ -79,6 +79,9 @@ class Game(simpyl):
         self.plrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'playerShip3_green.png')).convert_alpha()
         self.alimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'ufoYellow.png')).convert_alpha()
         self.lsrimg = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Lasers', 'laserBlue01.png')).convert_alpha()
+        self.shield1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield1.png')).convert_alpha()
+        self.shield2 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield2.png')).convert_alpha()
+        self.shield3 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield3.png')).convert_alpha()
         #self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
         #self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
         #self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
@@ -91,6 +94,9 @@ class Game(simpyl):
         self.plrimg = pygame.transform.scale(self.plrimg, (self.plrimg.get_width() / downscale, self.plrimg.get_height() / downscale))
         self.alimg = pygame.transform.scale(self.alimg, (self.alimg.get_width() / downscale, self.alimg.get_height() / downscale))
         self.lsrimg = pygame.transform.scale(self.lsrimg, (self.lsrimg.get_width() / downscale, self.lsrimg.get_height() / downscale))
+        self.shield1 = pygame.transform.scale(self.shield1, (self.shield3.get_width() / downscale, self.shield1.get_height() / downscale))
+        self.shield2 = pygame.transform.scale(self.shield2, (self.shield3.get_width() / downscale, self.shield2.get_height() / downscale))
+        self.shield3 = pygame.transform.scale(self.shield3, (self.shield3.get_width() / downscale, self.shield3.get_height() / downscale))
         #self.jet1 = pygame.transform.scale(self.jet1, (self.jet1.get_width() / 2, self.jet1.get_height() / 2))
         #self.jet4 = pygame.transform.scale(self.jet4, (self.jet4.get_width() / 2, self.jet4.get_height() / 2))
         #self.jet5 = pygame.transform.scale(self.jet5, (self.jet5.get_width() / 2, self.jet5.get_height() / 2))
@@ -98,7 +104,7 @@ class Game(simpyl):
     def start(self):
         # Hopefully should be able to call super().__init__() to reset the game
         # FUTURE relegate player creation + sprite groups to a system
-        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), Fire(), Movement(), Events())
+        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), Fire(20), Flash(120), Shield(True), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
 
     def run(self):

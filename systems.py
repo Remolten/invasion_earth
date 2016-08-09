@@ -24,42 +24,59 @@ from components import *
 
 import math, random
 
+# This is a simple counter
+# Usage: Create counter = Counter()
+# if next(counter()) is True: pass #do my action counter is complete
+class Counter(object):
+    def __init__(self, stop, step=1):
+        self.range = iter(range(0, stop, step))
+        
+    def count(self):
+        yield from self.range
+        yield True
+
 # Processes events and changes the relevant values of certain components
 class EventSystem(System):
     def __init__(self):
         self.id = 'EventSystem'
 
     def process(self):
+        # This seems like it might break with extra players
         for playerControlComponent, playerControlEntity in self.game.getComponents('PlayerControl').items():
             for fireComponent, fireEntity in self.game.getComponents('Fire').items():
-                for event in self.game.events:
-                    if event.type == KEYDOWN:
-                        if event.key == K_UP or event.key == ord('w'):
-                            playerControlComponent.up = True
-                            playerControlComponent.dwn = False
-                        if event.key == K_DOWN or event.key == ord('s'):
-                            playerControlComponent.dwn = True
-                            playerControlComponent.up = False
-                        if event.key == K_LEFT or event.key == ord('a'):
-                            playerControlComponent.lft = True
-                            playerControlComponent.rgt = False
-                        if event.key == K_RIGHT or event.key == ord('d'):
-                            playerControlComponent.rgt = True
-                            playerControlComponent.lft = False
-                        if event.key == K_SPACE:
-                            fireComponent.fire = True
+                for flashComponent, flashEntity in self.game.getComponents('Flash').items():
+                    for event in self.game.events:
+                        if event.type == KEYDOWN:
+                            if event.key == K_UP or event.key == ord('w'):
+                                playerControlComponent.up = True
+                                playerControlComponent.dwn = False
+                            if event.key == K_DOWN or event.key == ord('s'):
+                                playerControlComponent.dwn = True
+                                playerControlComponent.up = False
+                            if event.key == K_LEFT or event.key == ord('a'):
+                                playerControlComponent.lft = True
+                                playerControlComponent.rgt = False
+                            if event.key == K_RIGHT or event.key == ord('d'):
+                                playerControlComponent.rgt = True
+                                playerControlComponent.lft = False
+                            if event.key == K_SPACE:
+                                fireComponent.fire = True
 
-                    if event.type == KEYUP:
-                        if event.key == K_UP or event.key == ord('w'):
-                            playerControlComponent.up = False
-                        if event.key == K_DOWN or event.key == ord('s'):
-                            playerControlComponent.dwn = False
-                        if event.key == K_LEFT or event.key == ord('a'):
-                            playerControlComponent.lft = False
-                        if event.key == K_RIGHT or event.key == ord('d'):
-                            playerControlComponent.rgt = False
-                        if event.key == K_SPACE:
-                            fireComponent.fire = False
+                        if event.type == KEYUP:
+                            if event.key == K_UP or event.key == ord('w'):
+                                playerControlComponent.up = False
+                            if event.key == K_DOWN or event.key == ord('s'):
+                                playerControlComponent.dwn = False
+                            if event.key == K_LEFT or event.key == ord('a'):
+                                playerControlComponent.lft = False
+                            if event.key == K_RIGHT or event.key == ord('d'):
+                                playerControlComponent.rgt = False
+                            if event.key == K_SPACE:
+                                fireComponent.fire = False
+
+                        if event.type == MOUSEBUTTONDOWN:
+                            flashComponent.flash = True
+                            (flashComponent.flashx, flashComponent.flashy) = pygame.mouse.get_pos()
 
 # The MovementSystem has been ported! It should work fine.
 # Unfortunately, the initial design was incredibly flawed
@@ -130,10 +147,12 @@ class MovementSystem(System):
                 alienEntity.DirtySprite.dy += alienEntity.Speed.maxspd * yslope * alienEntity.Speed.thrust
 
         for laserEntity in self.game.getEntitiesByComponents('Laser'):
-            if laserEntity.DirtySprite.rect.x <= 0 or laserEntity.DirtySprite.rect.x >= self.game.screenrect.width - laserEntity.DirtySprite.rect.width:
-                laserEntity.DirtySprite.dx *= -1
-            if laserEntity.DirtySprite.rect.y <= 0 or laserEntity.DirtySprite.rect.y >= self.game.screenrect.height - laserEntity.DirtySprite.rect.height:
-                laserEntity.DirtySprite.dy *= -1
+            if laserEntity.DirtySprite.rect.x <= 0 - laserEntity.DirtySprite.rect.width or laserEntity.DirtySprite.rect.x >= self.game.screenrect.width:
+                #laserEntity.DirtySprite.dx *= -1
+                laserEntity.Alive.alive = False
+            if laserEntity.DirtySprite.rect.y <= 0 - laserEntity.DirtySprite.rect.height or laserEntity.DirtySprite.rect.y >= self.game.screenrect.height:
+                #laserEntity.DirtySprite.dy *= -1
+                laserEntity.Alive.alive = False
 
             if laserEntity.DirtySprite.dx != 0:
                 laserEntity.DirtySprite.angle = 90 - math.degrees(math.atan(laserEntity.DirtySprite.dy / laserEntity.DirtySprite.dx))
@@ -172,8 +191,9 @@ class MovementSystem(System):
             dsComponent.rect.x += dsComponent.dx
             dsComponent.rect.y += dsComponent.dy
 
-            # Keep sprite inside the screen
-            dsComponent.rect.clamp_ip(self.game.screenrect)
+            # Keep sprite inside the screen if not a laser
+            if not entity.has('Laser'):
+                dsComponent.rect.clamp_ip(self.game.screenrect)
             
 # A system which takes all collide components and checks for collisions
 # In a perfect world this would only check for collisions and not determine what happens when certain things collide
@@ -186,10 +206,7 @@ class CollisionSystem(System):
         aliens = []
         lasers = []
         players = []
-        
-        # Get all entities with the potential to collide
-#        for collisionComponent, collisionEntity in self.game.getComponents('Collision').items():
-#            pass
+        shields = []
         
         for alienEntity in self.game.getEntitiesByComponents('Alien'):
             aliens.append(alienEntity)
@@ -200,8 +217,12 @@ class CollisionSystem(System):
         for playerEntity in self.game.getEntitiesByComponents('Player'):
             players.append(playerEntity)
             
+        for shieldEntity in self.game.getEntitiesByComponents('Shield'):
+            shields.append(shieldEntity.Shield.shield)
+        
         self.checkListListCollision(players, aliens, 0, 1)
         self.checkListListCollision(lasers, aliens, 1, 1)
+        self.checkListListCollision(shields, aliens, 1, 1)
       
     # Expects to receive a 2 lists of entity objects + 2 amounts of damage
     def checkListListCollision(self, entityList1, entityList2, damage1, damage2):
@@ -214,12 +235,18 @@ class CollisionSystem(System):
                     _entity = entityList2[entityIndex]
 
                     # Apply damage to each entity from the list that collided
-                    if _entity.has('Health'):
+                    if _entity.has('Health') and not _entity.has('Shield'):
                         _entity.Health.damage += damage2
+                    elif _entity.has('Health'):
+                        if not _entity.Shield.active:
+                            _entity.Health.damage += damage2
 
                 # Apply any damage (if any), to the first singular entity arg
-                if entity.has('Health'):
+                if entity.has('Health') and not entity.has('Shield'):
                     entity.Health.damage += damage1
+                elif entity.has('Health'):
+                    if not entity.Shield.active:
+                        entity.Health.damage += damage1
                     
 # Monitors all entities with a health component
 # Deletes them from the game if they are not a player and their health is zero
@@ -251,10 +278,10 @@ class AliveSystem(System):
                 rmEnts.append(aliveEntity)
                 
         for rmEnt in rmEnts:
-            # Remove entities from the world
-            self.game.rmEntity(rmEnt)
             # Removes entity from all sprite groups
             rmEnt.DirtySprite.kill()
+            # Remove entities from the world
+            self.game.rmEntity(rmEnt)
                     
 # A system which creates lasers for all entities with fire objects
 # TODO This system and the others below should avoid accessing self variables whenever possible
@@ -266,6 +293,9 @@ class FireSystem(System):
         for fireComponent, fireEntity in self.game.getComponents('Fire').items():
             if fireComponent.fire and not fireComponent.over:
                 fireComponent.over = True
+                # Make a counter object
+                fireComponent.counter = Counter(fireComponent.overtm)
+                
                 # TODO fix inaccurate laser placement
                 # Cause: Not sure exactly
                 # TODO add optional kwargs for these DirtySprite variable settings in the component
@@ -277,28 +307,137 @@ class FireSystem(System):
                 
                 # TODO this should be relegated to some sort of sprite group internal system
                 self.game.spriteGroup.add(laser.DirtySprite)
-                
+
             elif fireComponent.over:
-                fireComponent.overt += 1
+                # Must do an explicit truth comparison because all ints != 0 evaulate to True
+                if next(fireComponent.counter.count()) is True:
+                    fireComponent.over = False
+                    
+class ShieldSystem(System):
+    def __init__(self):
+        self.id = 'ShieldSystem'
+        
+    def process(self):
+        for shieldComponent, shieldEntity in self.game.getComponents('Shield').items():
+            # Creates the shield immediately
+            if shieldComponent.active and shieldComponent.shield == None:
+                shieldComponent.shield = self.game.Entity(DirtySprite(self.game.shield3, self.game.shield3.get_rect()), Alive(), Collision(), Health(3))
+            
+            # Set the correct shield images
+            if shieldComponent.shield.Health.health == 3:
+                shieldComponent.shield.DirtySprite.ogimage = self.game.shield3
+            elif shieldComponent.shield.Health.health == 2:
+                shieldComponent.shield.DirtySprite.ogimage = self.game.shield2
+            elif shieldComponent.shield.Health.health == 1:
+                shieldComponent.shield.DirtySprite.ogimage = self.game.shield1
+            # Make the shield inactive upon being expleted
+            elif shieldComponent.shield.Health.health <= 0:
+                shieldComponent.active = False
+                # Entity not getting destroyed???
+                shieldComponent.shield.DirtySprite.rect.x = -shieldComponent.shield.DirtySprite.rect.width - 11
+                shieldComponent.shield.DirtySprite.rect.y = -shieldComponent.shield.DirtySprite.rect.height - 11
+            
+            # If the shield is active and has been created
+            if shieldComponent.active:
+                # Keep the shield on top of the player
+                shieldComponent.shield.DirtySprite.angle = shieldEntity.DirtySprite.angle
+                shieldComponent.shield.DirtySprite.image = pygame.transform.rotate(shieldComponent.shield.DirtySprite.ogimage, shieldComponent.shield.DirtySprite.angle)
+                
+#                for i in range(0, 361):
+#                    a = pygame.transform.rotate(shieldComponent.shield.DirtySprite.ogimage, i)
+#                    print(a.get_width(), a.get_height())
+                
+#                radius = max(shieldEntity.DirtySprite.image.get_width(), shieldEntity.DirtySprite.image.get_height())
+#                x = radius * math.cos(math.radians(shieldEntity.DirtySprite.angle + 90)) / 1
+#                y = radius * math.sin(math.radians(shieldEntity.DirtySprite.angle - 90)) / 5
+                width = shieldEntity.DirtySprite.rect.width / 4
+                height = shieldEntity.DirtySprite.rect.height / 4
+                shieldComponent.shield.DirtySprite.rect = pygame.Rect(shieldEntity.DirtySprite.rect.x - width, shieldEntity.DirtySprite.rect.y - height, shieldEntity.DirtySprite.rect.width + width, shieldEntity.DirtySprite.rect.height + height)
+                #shieldComponent.shield.DirtySprite.rect.x = shieldEntity.DirtySprite.rect.x + x
+                #shieldComponent.shield.DirtySprite.rect.centerx = shieldEntity.DirtySprite.rect.centerx + x 
+                #shieldComponent.shield.DirtySprite.rect.centery = shieldEntity.DirtySprite.rect.centery + y
+                # Ensure it is in the spriteGroup
+                self.game.spriteGroup.add(shieldComponent.shield.DirtySprite)
+#            elif shieldComponent.shield != None:
+#                # Stop the shield from blitting
+#                self.game.spriteGroup.remove(shieldComponent.shield.DirtySprite)
 
-            if fireComponent.overt == fireComponent.overtm:
-                fireComponent.overt = 0
-                fireComponent.over = False
+# Allows any entity to perform a flash/teleport move
+class FlashSystem(System):
+    def __init__(self):
+        self.id = 'FlashSystem'
+        
+    def process(self):
+        for flashComponent, flashEntity in self.game.getComponents('Flash').items():
+            if flashComponent.flash and not flashComponent.over:
+                flashComponent.counter = Counter(flashComponent.flashcd)
+                
+                # Run the flash process until it finishes
+                if not flashComponent.over:
+                    flashEntity = next(self.flash(flashEntity))
+            
+            elif flashComponent.over:
+                if next(flashComponent.counter.count()) is True:
+                    flashComponent.over = False
+                    
+    def flash(self, flashEntity):
+        # Disappear from space
+        while min(flashEntity.DirtySprite.rect.width, flashEntity.DirtySprite.rect.height) > 2:
+            width = flashEntity.DirtySprite.rect.width * 0.9
+            height = flashEntity.DirtySprite.rect.height * 0.9
+            flashEntity.DirtySprite.rect.x += (flashEntity.DirtySprite.rect.width - width) / 2
+            flashEntity.DirtySprite.rect.y += (flashEntity.DirtySprite.rect.height - height) / 2
+            flashEntity.DirtySprite.rect.width = width
+            flashEntity.DirtySprite.rect.height = height
+            # Need to keep the animation centered
+            flashEntity.DirtySprite.image = pygame.transform.rotate(pygame.transform.scale(flashEntity.DirtySprite.ogimage, (flashEntity.DirtySprite.rect.width, flashEntity.DirtySprite.rect.height)), flashEntity.DirtySprite.angle)
+            yield flashEntity
+            
+        # Change location
+        flashEntity.DirtySprite.rect.centerx = flashEntity.Flash.flashx
+        flashEntity.DirtySprite.rect.centery = flashEntity.Flash.flashy
+        
+        # Then reappear
+        while flashEntity.DirtySprite.rect.width <= flashEntity.DirtySprite.ogimage.get_width() or flashEntity.DirtySprite.rect.height <= flashEntity.DirtySprite.ogimage.get_height():
+            # Doing *= 2 doesn't work apparently????
+            flashEntity.DirtySprite.rect.width = flashEntity.DirtySprite.ogimage.get_width()
+            flashEntity.DirtySprite.rect.height = flashEntity.DirtySprite.ogimage.get_height()
+            #print(flashEntity.DirtySprite.rect.width, flashEntity.DirtySprite.ogimage.get_width())
+            #print(flashEntity.DirtySprite.rect.height, flashEntity.DirtySprite.ogimage.get_height())
+            flashEntity.DirtySprite.image = pygame.transform.rotate(flashEntity.DirtySprite.ogimage, flashEntity.DirtySprite.angle)
+            flashEntity.Flash.over = True
+            flashEntity.Flash.flash = False
+            yield flashEntity
+         
+        # For whatever odd reason, this never runs
+#        print('epoh')
+#            
+#        flashEntity.DirtySprite.rect.width = flashEntity.DirtySprite.ogimage.get_width()
+#        flashEntity.DirtySprite.rect.height = flashEntity.DirtySprite.ogimage.get_height()
+#        flashEntity.DirtySprite.image = pygame.transform.scale(flashEntity.DirtySprite.ogimage, (flashEntity.DirtySprite.ogimage.get_width(), flashEntity.DirtySprite.ogimage.get_height()))
+#        
+#        # Starts the cooldown timer
+#        flashEntity.Flash.over = True
+#        flashEntity.Flash.flash = False
+#        print('its false')
+#        yield flashEntity
 
-# Handles the parallax and moving background images
+# Handles the random scrolling of the background image
 class MovingBackgroundSystem(System):
     def __init__(self):
         self.id = 'MovingBackgroundSystem'
-        self.x = 0
+        # The self.x and self.y could (maybe should) be randomized at init
+        self.x = 300 # Start towards the center of the background
         self.xmod = 0
         self.xchoices = [-1, 0, 1]
-        self.y = 0
+        self.y = 300 # Start towards the center of the background
         self.ymod = 0
         self.ychoices = [-1, 0, 1]
-        self.waitct = 100
-        self.switch = 100
+        self.waitct = 1000
+        self.switch = 1000
     
     def process(self):
+        # Triggering a switch becomes more likely each frame
         if random.randint(self.waitct, self.switch) == self.switch or self.waitct >= self.switch:
             self.xmod = random.choice(self.xchoices)
             self.ymod = random.choice(self.ychoices)
@@ -306,38 +445,50 @@ class MovingBackgroundSystem(System):
             self.xchoices = [-1, 0, 1]
             self.ychoices = [-1, 0, 1]
             
+            # Prevent scroll change from going in the opposite direction
             if self.ymod == 0 and self.xmod != 0:
                 self.xchoices.remove(-self.xmod)
             
+            # Prevent scroll change from going in the opposite direction
             if self.xmod == 0 and self.ymod != 0:
                 self.ychoices.remove(-self.ymod)
             
+            # Ensure we are always scrolling
             if self.xmod == 0 and self.ymod == 0:
                 if random.randint(0, 1) == 1:
                     self.xmod = random.choice([-1, 1])
                 else:
                     self.ymod = random.choice([-1, 1])
+                    
+            # Prevent scroll change from going in the opposite direction
             elif self.xmod == self.ymod:
                 if random.randint(0, 1) == 1:
                     self.xchoices.remove(-self.xmod)
                 else:
                     self.ychoices.remove(-self.ymod)
-                
+            
+            # Reset the cooldown counter
             self.waitct = 0
+        
+        # These change the scrolling when we're about to go off the image
+        if self.x + self.game.screenrect.width > self.game.bg.get_width():
+            #self.x = 0
+            self.xmod *= -1
+        elif self.x < 0:
+            #self.x = self.game.bg.get_width() - self.game.screenrect.width
+            self.xmod *= -1
+        if self.y + self.game.screenrect.height > self.game.bg.get_height():
+            #self.y = 0
+            self.ymod *= -1
+        elif self.y < 0:
+            #self.y = self.game.bg.get_height() - self.game.screenrect.height
+            self.ymod *= -1
         
         self.x += self.xmod
         self.y += self.ymod
         self.waitct += 1
-        
-        if self.x + self.game.screenrect.width > self.game.bg.get_width():
-            self.x = 0
-        elif self.x < 0:
-            self.x = self.game.bg.get_width() - self.game.screenrect.width
-        if self.y + self.game.screenrect.height > self.game.bg.get_height():
-            self.y = 0
-        elif self.y < 0:
-            self.y = self.game.bg.get_height() - self.game.screenrect.height
 
+        # Change the clip, which determines what is drawn
         self.game.bg.set_clip(pygame.Rect(self.x, self.y, self.game.screenrect.width, self.game.screenrect.height))
 
 # TODO DrawSystem should be revamped to take entity lists, not sprite groups

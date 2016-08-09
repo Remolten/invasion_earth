@@ -58,19 +58,26 @@ class Health(Component):
         self.damage = 0
 
 class Fire(Component):
-    def __init__(self):
+    def __init__(self, overtm):
         self.id = 'Fire'
         self.fire = False
         self.over = False
-        self.overt = 0
-        self.overtm = 20 #To be tweaked
+        self.overtm = overtm
+        
+class Shield(Component):
+    def __init__(self, active):
+        self.id = 'Shield'
+        self.active = active
+        self.shield = None
 
 class Flash(Component):
-    def __init__(self):
+    def __init__(self, flashcd):
         self.id = 'Flash'
-        self.flsh = False
-        self.flshcd = False
-        self.flshct = 0
+        self.flash = False
+        self.over = False
+        self.flashcd = flashcd
+        self.flashx = 0
+        self.flashy = 0
 
 class PotentialField(Component):
     def __init__(self, *potentials): # supply lists of potential # + circle radius, order matters

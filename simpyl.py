@@ -167,8 +167,8 @@ class simpyl(object):
                 self.cs[component.id] = {component: entity}
     
     # Removes a variable number of components from the database
-    # FUTURE Could resort self.cs just in case the removed component was the last of its type
-    # TODO This is most likely broken atm
+    # Could resort self.cs just in case the removed component was the last of its type
+    # This is most likely broken atm
 #    def rmComponent(self, *components):
 #        for component in components:
 #            # Ensures each argument is a component
@@ -184,7 +184,6 @@ class simpyl(object):
 #                return "Component not found in database or owner entity. Unable to remove."
             
     # Return a dict of all components of the specified componentType
-    # TODO Organize the components into sub groups containing only their type
     def getComponents(self, componentType):      
         # Returns a dict of all entities with the specified component type
         # return dict(filter(lambda x: x[0].id == componentType, self.cs.items()))
@@ -193,8 +192,10 @@ class simpyl(object):
         cs = dict(filter(lambda x: x[0] == componentType, self.cs.items()))
         
         # Only return the internal dict with the actual components
-        # FIXME broken when there are no components of that type
-        return list(cs.values())[0]
+        if len(cs.values()) > 0:
+            return list(cs.values())[0]
+        else:
+            return {}
         # Above works as long as we don't allow user to get multiple componentTypes at once
     
     # Return all entities that contain the specified componentTypes

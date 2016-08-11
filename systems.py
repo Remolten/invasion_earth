@@ -220,7 +220,7 @@ class CollisionSystem(System):
         for shieldEntity in self.game.getEntitiesByComponents('Shield'):
             shields.append(shieldEntity.Shield.shield)
         
-        self.checkListListCollision(players, aliens, 0, 1)
+        self.checkListListCollision(players, aliens, 1, 1)
         self.checkListListCollision(lasers, aliens, 1, 1)
         self.checkListListCollision(shields, aliens, 1, 1)
       
@@ -262,6 +262,33 @@ class HealthSystem(System):
             
             if healthComponent.health <= 0:
                 healthEntity.Alive.alive = False
+                
+                if healthEntity.has('DeathAnimation'):
+                    healthEntity.DeathAnimation.play = True
+
+# In the future, you will be able to choose your images via the DeathAnimation component instead of hard-coded
+class DeathAnimationSystem(System):
+    def __init__(self):
+        self.id = 'DeathAnimationSystem'
+        
+    def process(self):
+        for daoComponent, daoEntity in self.game.getComponents('DeathAnimationObject').items():
+            if daoEntity.DirtySprite.imgindex < len(daoEntity.DirtySprite.imgs):
+                daoEntity.DirtySprite.image = daoEntity.DirtySprite.imgs[daoEntity.DirtySprite.imgindex]
+                daoEntity.DirtySprite.imgindex += 1
+            else:
+                daoEntity.Alive.alive = False
+            
+        for daComponent, daEntity in self.game.getComponents('DeathAnimation').items():
+            if daComponent.play:
+                self.createAnimEntity(daEntity)
+                
+    def createAnimEntity(self, daEntity):
+        animEntity = self.game.Entity(DirtySprite(self.game.deathAnimImgs[0], self.game.deathAnimImgs[0].get_rect(x = daEntity.DirtySprite.rect.x, y = daEntity.DirtySprite.rect.y)), Alive(), DeathAnimationObject())
+        animEntity.DirtySprite.rect.centerx = daEntity.DirtySprite.rect.centerx
+        animEntity.DirtySprite.rect.centery = daEntity.DirtySprite.rect.centery
+        animEntity.DirtySprite.imgs = self.game.deathAnimImgs
+        self.game.spriteGroup.add(animEntity.DirtySprite)
             
 # Removes entities that have been flagged as not alive
 class AliveSystem(System):
@@ -398,6 +425,7 @@ class FlashSystem(System):
         flashEntity.DirtySprite.rect.centery = flashEntity.Flash.flashy
         
         # Then reappear
+        # TODO figure out why this wouldn't work properly
         while flashEntity.DirtySprite.rect.width <= flashEntity.DirtySprite.ogimage.get_width() or flashEntity.DirtySprite.rect.height <= flashEntity.DirtySprite.ogimage.get_height():
             # Doing *= 2 doesn't work apparently????
             flashEntity.DirtySprite.rect.width = flashEntity.DirtySprite.ogimage.get_width()
@@ -515,16 +543,14 @@ class DrawSystem(System):
 #        else:
 #            self.game.rlst.append(self.spriteGroup.sprite.rect)
 
-# TODO Change the call functions of this and all other systems to be named process
 # That way they can be called with one call to the simpyl.process method
 class AlienGeneratorSystem(System):
     def __init__(self):
         self.id = 'AlienGeneratorSystem'
 
     def process(self):
-        # FIXME Rate of generation needs to be accessible outside of the function
         if random.randint(0, 120) == 11:
-            alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Health(1), Alive(), Movement(), AIControl(), Alien())
+            alien = self.game.Entity(DirtySprite(self.game.alimg, self.game.alimg.get_rect(x = random.randint(0, self.game.screenrect.width - self.game.alimg.get_width()), y = random.randint(0, self.game.screenrect.height - self.game.alimg.get_height()))), Speed(3, 6, 0.01), Health(1), DeathAnimation(), Alive(), Movement(), AIControl(), Alien())
             alien.DirtySprite.dx = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             alien.DirtySprite.dy = random.randint(-alien.Speed.maxspd, alien.Speed.maxspd)
             
@@ -543,7 +569,7 @@ class GameOverSystem(System):
             pass
             #print('Game Over')
 
-# TODO port this JET ANIMATION AWESOME CLASS
+# port this JET ANIMATION AWESOME CLASS
 #class JetAnimationSystem(System):
 #    def __init__(self):
 #        self.id = 'JetAnimationSystem'

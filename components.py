@@ -98,6 +98,11 @@ class Alive(Component):
     def __init__(self):
         self.id = 'Alive'
         self.alive = True
+        
+class DeathAnimation(Component):
+    def __init__(self):
+        self.id = 'DeathAnimation'
+        self.play = False
 
 # Placeholder classes for easier identification
 class Movement(Component):
@@ -127,3 +132,7 @@ class Laser(Component):
 class Player(Component):
     def __init__(self):
         self.id = 'Player'
+        
+class DeathAnimationObject(Component):
+    def __init__(self):
+        self.id = 'DeathAnimationObject'

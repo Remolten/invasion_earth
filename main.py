@@ -22,6 +22,7 @@ import pygame
 from pygame.locals import *
 
 import sys, os
+import time # for testing and gif creation
 
 from simpyl import simpyl
 from systems import *
@@ -65,8 +66,8 @@ class Game(simpyl):
         self.font = pygame.font.SysFont("monospace", 60)
         
         # Add all of the systems to the main database
-        #self.addSystem(self.eventSystem, self.movementSystem, self.fireSystem, self.drawSystem, self.alienGeneratorSystem, self.collisionSystem)
-        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), FlashSystem(), ShieldSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
+        # Note that the order added dictates what order they are run in
+        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), FlashSystem(), ShieldSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), DeathAnimationSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
         
         # Load all assets
         # TODO call this function with arguments for each image needed and add image + downscale args
@@ -88,6 +89,14 @@ class Game(simpyl):
         
         # This may not be necessary with the new refactoring
         #self.jetimgs = [self.jet1, self.jet4, self.jet5]
+        
+        self.deathAnimImgs = []
+        for i in range(0, 9):
+            if i < 10:
+                i = '0{0}'.format(i)
+            img = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'smokeparticleassets', 'PNG', 'Explosion', 'explosion{0}.png'.format(i)))
+            img = pygame.transform.scale(img, (img.get_width() / 6, img.get_height() / 6))
+            self.deathAnimImgs.append(img)
 
         # Scale down by factor of 3 for most things
         downscale = 3
@@ -104,11 +113,12 @@ class Game(simpyl):
     def start(self):
         # Hopefully should be able to call super().__init__() to reset the game
         # FUTURE relegate player creation + sprite groups to a system
-        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), Fire(20), Flash(120), Shield(True), Movement(), Events())
+        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), DeathAnimation(), Fire(20), Flash(120), Shield(True), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
 
     def run(self):
         self.start()
+        #time.sleep(2)
 
         while True:
             for event in pygame.event.get():

@@ -87,12 +87,10 @@ class PotentialField(Component):
             self.potential.append(potential)
             
 class JetAnimation(Component):
-    def __init__(self, pos, attachedEntityID, freq):
+    def __init__(self):
         self.id = 'JetAnimation'
-        self.pos = pos # AKA is this the left or right trail, == to 0 or 1 respectively
-        self.attachedid = attachedEntityID
-        self.freq = freq # AKA change image every freq frames
-        self.freqct = 0
+        self.ja1 = None
+        self.ja2 = None
         
 class Alive(Component):
     def __init__(self):

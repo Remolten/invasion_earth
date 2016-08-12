@@ -220,7 +220,7 @@ class CollisionSystem(System):
         for shieldEntity in self.game.getEntitiesByComponents('Shield'):
             shields.append(shieldEntity.Shield.shield)
         
-        self.checkListListCollision(players, aliens, 1, 1)
+        self.checkListListCollision(players, aliens, 0, 1)
         self.checkListListCollision(lasers, aliens, 1, 1)
         self.checkListListCollision(shields, aliens, 1, 1)
       
@@ -370,24 +370,11 @@ class ShieldSystem(System):
                 shieldComponent.shield.DirtySprite.angle = shieldEntity.DirtySprite.angle
                 shieldComponent.shield.DirtySprite.image = pygame.transform.rotate(shieldComponent.shield.DirtySprite.ogimage, shieldComponent.shield.DirtySprite.angle)
                 
-#                for i in range(0, 361):
-#                    a = pygame.transform.rotate(shieldComponent.shield.DirtySprite.ogimage, i)
-#                    print(a.get_width(), a.get_height())
-                
-#                radius = max(shieldEntity.DirtySprite.image.get_width(), shieldEntity.DirtySprite.image.get_height())
-#                x = radius * math.cos(math.radians(shieldEntity.DirtySprite.angle + 90)) / 1
-#                y = radius * math.sin(math.radians(shieldEntity.DirtySprite.angle - 90)) / 5
                 width = shieldEntity.DirtySprite.rect.width / 4
                 height = shieldEntity.DirtySprite.rect.height / 4
                 shieldComponent.shield.DirtySprite.rect = pygame.Rect(shieldEntity.DirtySprite.rect.x - width, shieldEntity.DirtySprite.rect.y - height, shieldEntity.DirtySprite.rect.width + width, shieldEntity.DirtySprite.rect.height + height)
-                #shieldComponent.shield.DirtySprite.rect.x = shieldEntity.DirtySprite.rect.x + x
-                #shieldComponent.shield.DirtySprite.rect.centerx = shieldEntity.DirtySprite.rect.centerx + x 
-                #shieldComponent.shield.DirtySprite.rect.centery = shieldEntity.DirtySprite.rect.centery + y
                 # Ensure it is in the spriteGroup
                 self.game.spriteGroup.add(shieldComponent.shield.DirtySprite)
-#            elif shieldComponent.shield != None:
-#                # Stop the shield from blitting
-#                self.game.spriteGroup.remove(shieldComponent.shield.DirtySprite)
 
 # Allows any entity to perform a flash/teleport move
 class FlashSystem(System):
@@ -569,54 +556,59 @@ class GameOverSystem(System):
             pass
             #print('Game Over')
 
-# port this JET ANIMATION AWESOME CLASS
-#class JetAnimationSystem(System):
-#    def __init__(self):
-#        self.id = 'JetAnimationSystem'
-#    
-#    def create(self, entities, attachedEntityID, spriteGroup, jetimgs):
-#        reqimg = jetimgs[0]
-#        for i in range(2):
-#            trail = Entity(DirtySprite(reqimg, reqimg.get_rect()), JetAnimation(i, attachedEntityID, 3))
-#            trail.DirtySprite.imgs = jetimgs
-#            trail.DirtySprite.dirty = 2 # Set it to always be repainted because it's animated every frame
-#            entities.append(trail)
-#            spriteGroup.add(trail.DirtySprite)
-#        return entities, spriteGroup
-#    
-#    def update(self, entities):
-#        for entity in entities:
-#            if entity.has('JetAnimation'):
-#                if entity.JetAnimation.freqct == entity.JetAnimation.freq:
-#                    if entity.DirtySprite.imgindex + 1 > len(entity.DirtySprite.imgs) - 1:
-#                        entity.DirtySprite.imgindex = 0
-#                    else:
-#                        entity.DirtySprite.imgindex += 1
-#
-#                    entity.DirtySprite.image = entity.DirtySprite.imgs[entity.DirtySprite.imgindex]
-#                    entity.JetAnimation.freqct = 0
-#                else:
-#                    entity.JetAnimation.freqct += 1
-#                
-#                # Get the entity it is attached to
-#                attachedToEntity = list(filter(lambda x: x.id == entity.JetAnimation.attachedid, entities))[0]
-#                
-#                entity.DirtySprite.image = pygame.transform.rotate(entity.DirtySprite.imgs[entity.DirtySprite.imgindex], attachedToEntity.DirtySprite.angle)
-#                    
-#                # Determine position relative to the entity its attached to
-#                # Use the parametric equation of a circle
-#                radius = max(attachedToEntity.DirtySprite.rect.width, attachedToEntity.DirtySprite.rect.height) / 1
-#                x = radius * math.cos(math.radians(attachedToEntity.DirtySprite.angle + 270))
-#                y = radius * math.sin(math.radians(attachedToEntity.DirtySprite.angle - 270))
-#                
-#                if entity.JetAnimation.pos == 0:
-##                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.centerx + x, attachedToEntity.DirtySprite.rect.centery + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-#                else:
-#                    pass
-#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + attachedToEntity.DirtySprite.rect.width - attachedToEntity.DirtySprite.rect.width / 7, attachedToEntity.DirtySprite.rect.y + attachedToEntity.DirtySprite.rect.height, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-#                    entity.DirtySprite.rect = pygame.Rect(attachedToEntity.DirtySprite.rect.x + x, attachedToEntity.DirtySprite.rect.y + y, entity.DirtySprite.image.get_width(), entity.DirtySprite.image.get_height())
-
+class JetAnimationSystem(System):
+    def __init__(self):
+        self.id = 'JetAnimationSystem'
+    
+    def process(self):
+        for jaComponent, jaEntity in self.game.getComponents('JetAnimation').items():
+            if jaComponent.ja1 == None or jaComponent.ja2 == None:
+                jaComponent.ja1 = self.create()
+                jaComponent.ja2 = self.create()
+             
+            # Remove the jet animations if the parent is dead
+            if not jaEntity.Alive.alive:
+                jaComponent.ja1.Alive.alive = False
+                jaComponent.ja2.Alive.alive = False
+                
+            if jaComponent.ja1.DirtySprite.imgindex < len(jaComponent.ja1.DirtySprite.imgs):
+                jaComponent.ja1.DirtySprite.ogimage = jaComponent.ja1.DirtySprite.imgs[jaComponent.ja1.DirtySprite.imgindex]
+                jaComponent.ja1.DirtySprite.imgindex += 1
+            else:
+                jaComponent.ja1.DirtySprite.ogimage = jaComponent.ja1.DirtySprite.imgs[0]
+                jaComponent.ja1.DirtySprite.imgindex = 0
+                
+            if jaComponent.ja2.DirtySprite.imgindex < len(jaComponent.ja2.DirtySprite.imgs):
+                jaComponent.ja2.DirtySprite.ogimage = jaComponent.ja2.DirtySprite.imgs[jaComponent.ja2.DirtySprite.imgindex]
+                jaComponent.ja2.DirtySprite.imgindex += 2
+            else:
+                jaComponent.ja2.DirtySprite.ogimage = jaComponent.ja2.DirtySprite.imgs[0]
+                jaComponent.ja2.DirtySprite.imgindex = 0
+        
+            jaComponent.ja1.DirtySprite.angle = jaEntity.DirtySprite.angle
+            jaComponent.ja2.DirtySprite.angle = jaEntity.DirtySprite.angle
+            
+            jaComponent.ja1.DirtySprite.image = pygame.transform.rotate(jaComponent.ja1.DirtySprite.ogimage, jaComponent.ja1.DirtySprite.angle)
+            jaComponent.ja2.DirtySprite.image = pygame.transform.rotate(jaComponent.ja2.DirtySprite.ogimage, jaComponent.ja2.DirtySprite.angle)
+            
+            radius = jaEntity.DirtySprite.ogimage.get_width()
+            ja1x = radius * math.cos(math.radians(jaComponent.ja1.DirtySprite.angle + 18 + 90))
+            ja1y = radius * math.sin(math.radians(jaComponent.ja1.DirtySprite.angle + 18 - 90))
+            ja2x = radius * math.cos(math.radians(jaComponent.ja2.DirtySprite.angle - 18 + 90)) 
+            ja2y = radius * math.sin(math.radians(jaComponent.ja2.DirtySprite.angle - 18 - 90))
+            
+#            if ja1x > 0 and ja2x > 0:
+#                ja1y *= 1.2
+#                ja2y *= 1.2
+            
+            jaComponent.ja1.DirtySprite.rect = pygame.Rect(jaEntity.DirtySprite.rect.x - ja1x, jaEntity.DirtySprite.rect.y - ja1y, jaEntity.DirtySprite.rect.width, jaEntity.DirtySprite.rect.height)
+            jaComponent.ja2.DirtySprite.rect = pygame.Rect(jaEntity.DirtySprite.rect.x - ja2x, jaEntity.DirtySprite.rect.y - ja2y, jaEntity.DirtySprite.rect.width, jaEntity.DirtySprite.rect.height)
+            
+    def create(self):
+        trail = self.game.Entity(DirtySprite(self.game.jetimgs[0], self.game.jetimgs[0].get_rect()), Alive())
+        trail.DirtySprite.imgs = self.game.jetimgs
+        self.game.spriteGroup.add(trail.DirtySprite)
+        return trail
 
 # Now we must intepret the potential on the map, and create the virtual circles
 # The enemies can then try and pathfind their way to the most attractive spots

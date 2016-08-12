@@ -67,7 +67,7 @@ class Game(simpyl):
         
         # Add all of the systems to the main database
         # Note that the order added dictates what order they are run in
-        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), FlashSystem(), ShieldSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), DeathAnimationSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
+        self.addSystem(EventSystem(), MovementSystem(), FireSystem(), FlashSystem(), ShieldSystem(), JetAnimationSystem(), AlienGeneratorSystem(), CollisionSystem(), HealthSystem(), DeathAnimationSystem(), AliveSystem(), GameOverSystem(), MovingBackgroundSystem(), DrawSystem())
         
         # Load all assets
         # TODO call this function with arguments for each image needed and add image + downscale args
@@ -83,12 +83,12 @@ class Game(simpyl):
         self.shield1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield1.png')).convert_alpha()
         self.shield2 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield2.png')).convert_alpha()
         self.shield3 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'shield3.png')).convert_alpha()
-        #self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
-        #self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
-        #self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
+        self.jet1 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire01.png')).convert_alpha()
+        self.jet4 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire04.png')).convert_alpha()
+        self.jet5 = pygame.image.load(os.path.join(os.path.sep, os.getcwd(), 'assets', 'PNG', 'Effects', 'fire05.png')).convert_alpha()
         
         # This may not be necessary with the new refactoring
-        #self.jetimgs = [self.jet1, self.jet4, self.jet5]
+        self.jetimgs = [self.jet1, self.jet4, self.jet5]
         
         self.deathAnimImgs = []
         for i in range(0, 9):
@@ -113,7 +113,7 @@ class Game(simpyl):
     def start(self):
         # Hopefully should be able to call super().__init__() to reset the game
         # FUTURE relegate player creation + sprite groups to a system
-        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), DeathAnimation(), Fire(20), Flash(120), Shield(True), Movement(), Events())
+        self.plr = self.Entity(DirtySprite(self.plrimg, self.plrimg.get_rect(x = self.ssx / 2 - self.plrimg.get_width() / 2, y = self.ssy / 2 - self.plrimg.get_height() / 2)), Speed(6, 6, 0.08), Player(), Health(3), Alive(), Collision(), PlayerControl(), JetAnimation(), DeathAnimation(), Fire(20), Flash(120), Shield(True), Movement(), Events())
         self.spriteGroup = pygame.sprite.OrderedUpdates(self.plr.DirtySprite)
 
     def run(self):
